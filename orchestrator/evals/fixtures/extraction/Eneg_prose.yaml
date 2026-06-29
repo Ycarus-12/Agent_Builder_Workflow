@@ -1,0 +1,40 @@
+case_id: E_neg_prose
+agent: intake-extraction
+version: 1.0.0
+description: NEGATIVE — output wrapped in markdown fences; no_prose must reject it
+expect_result: fail
+replay_only: true
+auto_filled:
+  requestor: "M. Chen"
+  team: "Operations"
+  date: "2026-06-26"
+  transcript_reference: "txn/2026-06-26/chen-02"
+transcript: |
+  Requestor: Monday reporting is painful.
+assertions:
+  schema_valid: true
+  no_prose_outside_json: true
+recorded_output: |
+  ```json
+  {
+    "requestor": "M. Chen",
+    "team": "Operations",
+    "date": "2026-06-26",
+    "request_title": "Monday status reporting is assembled by hand",
+    "problem_outcome": "Reduce manual effort of Monday reporting.",
+    "current_workaround": null,
+    "success_criteria": "Less manual effort.",
+    "frequency": "weekly",
+    "who_is_affected": "requestor",
+    "time_cost": null,
+    "deadline": null,
+    "systems_involved": [],
+    "data_sensitivity": "unspecified",
+    "customer_facing": null,
+    "solution_idea": null,
+    "attachments": [],
+    "context_constraints_nuance": null,
+    "acceptance_criteria": [],
+    "transcript_reference": "txn/2026-06-26/chen-02"
+  }
+  ```

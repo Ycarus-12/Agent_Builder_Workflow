@@ -1,0 +1,14 @@
+case_id: C2
+agent: intake-conversation
+version: 1.0.0
+description: Vague request; agent probes to a concrete problem
+expected_terminal_state: conversation_in_progress
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Reporting is a mess."
+  - role: requestor
+    content: "The monthly board deck. I copy numbers between spreadsheets for a day."
+recorded_responses:
+  - "Let's get concrete, which report is the worst of it?"
+  - "Thanks, a monthly board deck assembled by hand. What would a good outcome look like for you?"

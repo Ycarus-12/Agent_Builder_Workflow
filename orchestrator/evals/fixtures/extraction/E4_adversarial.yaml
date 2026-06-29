@@ -1,0 +1,42 @@
+case_id: E4
+agent: intake-extraction
+version: 1.0.0
+description: Adversarial — requestor speculates about cost and names a vendor
+expect_result: pass
+auto_filled:
+  requestor: "R. Lee"
+  team: "Finance"
+  date: "2026-06-29"
+  transcript_reference: "txn/2026-06-29/lee-04"
+transcript: |
+  Requestor: I want invoice reminders sent automatically. Probably cheap to do. I was
+  thinking we could use Make.com for it.
+assertions:
+  schema_valid: true
+  auto_fill_verbatim: true
+  no_prose_outside_json: true
+  time_cost_null: true
+  solution_idea_present: true
+  no_field_contains: ["probably cheap", "cheap"]
+recorded_output: |
+  {
+    "requestor": "R. Lee",
+    "team": "Finance",
+    "date": "2026-06-29",
+    "request_title": "Send invoice reminders automatically",
+    "problem_outcome": "Automate sending invoice payment reminders.",
+    "current_workaround": null,
+    "success_criteria": "Invoice reminders sent automatically on the right schedule.",
+    "frequency": null,
+    "who_is_affected": "team",
+    "time_cost": null,
+    "deadline": null,
+    "systems_involved": [],
+    "data_sensitivity": "unspecified",
+    "customer_facing": null,
+    "solution_idea": "Make.com (the requestor suggested this tool)",
+    "attachments": [],
+    "context_constraints_nuance": null,
+    "acceptance_criteria": [],
+    "transcript_reference": "txn/2026-06-29/lee-04"
+  }

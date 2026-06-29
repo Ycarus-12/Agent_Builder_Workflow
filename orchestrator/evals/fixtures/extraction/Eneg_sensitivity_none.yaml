@@ -1,0 +1,38 @@
+case_id: E_neg_sensitivity_none
+agent: intake-extraction
+version: 1.0.0
+description: NEGATIVE — sensitivity unstated but output says "none"; floor must reject
+expect_result: fail
+replay_only: true
+auto_filled:
+  requestor: "M. Chen"
+  team: "Operations"
+  date: "2026-06-26"
+  transcript_reference: "txn/2026-06-26/chen-02"
+transcript: |
+  Requestor: Monday reporting is painful; never discussed data sensitivity.
+assertions:
+  schema_valid: true
+  data_sensitivity: "unspecified"
+recorded_output: |
+  {
+    "requestor": "M. Chen",
+    "team": "Operations",
+    "date": "2026-06-26",
+    "request_title": "Monday status reporting is assembled by hand",
+    "problem_outcome": "Reduce manual effort of Monday reporting.",
+    "current_workaround": null,
+    "success_criteria": "Less manual effort.",
+    "frequency": "weekly",
+    "who_is_affected": "requestor",
+    "time_cost": null,
+    "deadline": null,
+    "systems_involved": [],
+    "data_sensitivity": "none",
+    "customer_facing": null,
+    "solution_idea": null,
+    "attachments": [],
+    "context_constraints_nuance": null,
+    "acceptance_criteria": [],
+    "transcript_reference": "txn/2026-06-26/chen-02"
+  }

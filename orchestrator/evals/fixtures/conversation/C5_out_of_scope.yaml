@@ -1,0 +1,14 @@
+case_id: C5
+agent: intake-conversation
+version: 1.0.0
+description: Looks out of scope (fix my VPN); agent captures neutrally, no scope judgment
+expected_terminal_state: conversation_in_progress
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Can you fix my VPN? It keeps dropping."
+  - role: requestor
+    content: "A few times a day. I just reconnect manually each time."
+recorded_responses:
+  - "Tell me more about what you're trying to get done when it happens, I'll capture the problem."
+  - "Thanks, so it drops a few times a day and you reconnect by hand. I've noted that. Anything else about the impact?"

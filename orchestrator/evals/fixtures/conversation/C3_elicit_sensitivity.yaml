@@ -1,0 +1,14 @@
+case_id: C3
+agent: intake-conversation
+version: 1.0.0
+description: Requestor never volunteers sensitivity; agent elicits both fields
+expected_terminal_state: conversation_in_progress
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "I want to automate onboarding emails."
+  - role: requestor
+    content: "Yeah, we send them to new customers."
+recorded_responses:
+  - "Helpful. One thing I need to capture, does this involve sensitive or customer data?"
+  - "Thanks, customer data and customer-facing, noted. What triggers the emails today?"

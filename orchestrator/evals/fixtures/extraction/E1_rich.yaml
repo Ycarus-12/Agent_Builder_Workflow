@@ -1,0 +1,46 @@
+case_id: E1
+agent: intake-extraction
+version: 1.0.0
+description: Rich transcript (deal->checklist; customer data in, internal out; Zapier idea)
+expect_result: pass
+auto_filled:
+  requestor: "J. Rivera"
+  team: "Professional Services"
+  date: "2026-06-25"
+  transcript_reference: "txn/2026-06-25/rivera-01"
+transcript: |
+  Requestor: Every time a deal closes in the CRM I build a kickoff checklist by hand
+  in our work-management tool. Takes ~20 min, a few times a week, just me. It reads
+  customer fields from the CRM but the checklist itself is internal only. I figured a
+  Zapier zap could do it.
+assertions:
+  schema_valid: true
+  auto_fill_verbatim: true
+  no_prose_outside_json: true
+  data_sensitivity: "customer"
+  customer_facing: false
+  solution_idea_present: true
+  acceptance_criteria_length: 3
+  systems_involved_contains: ["CRM", "work-management tool"]
+recorded_output: |
+  {
+    "requestor": "J. Rivera",
+    "team": "Professional Services",
+    "date": "2026-06-25",
+    "request_title": "Auto-create kickoff checklist when a deal closes",
+    "problem_outcome": "Remove the manual kickoff checklist created after every deal close.",
+    "current_workaround": "Building the checklist by hand in the work-management tool.",
+    "success_criteria": "Checklist auto-created and the owner notified when a deal closes in the CRM.",
+    "frequency": "a few times a week",
+    "who_is_affected": "requestor",
+    "time_cost": "about 20 minutes each",
+    "deadline": null,
+    "systems_involved": ["CRM", "work-management tool"],
+    "data_sensitivity": "customer",
+    "customer_facing": false,
+    "solution_idea": "A Zapier-style automation (requestor's idea, non-binding)",
+    "attachments": [],
+    "context_constraints_nuance": "Reads customer data in the CRM; the checklist output is internal only.",
+    "acceptance_criteria": ["Checklist auto-created on deal close", "Owner notified", "Each run logged"],
+    "transcript_reference": "txn/2026-06-25/rivera-01"
+  }

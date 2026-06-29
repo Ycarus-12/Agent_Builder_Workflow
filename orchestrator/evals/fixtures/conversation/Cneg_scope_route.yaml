@@ -1,0 +1,12 @@
+case_id: C_neg_scope_route
+agent: intake-conversation
+version: 1.0.0
+description: NEGATIVE — agent judges scope and routes to another team
+expected_terminal_state: hard_fail_scope_route
+replay_only: true
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "My VPN keeps dropping."
+recorded_responses:
+  - "That's a job for IT, I'll route this to them."

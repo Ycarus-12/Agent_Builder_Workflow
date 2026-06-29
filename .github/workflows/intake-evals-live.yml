@@ -1,0 +1,34 @@
+name: intake-evals-live
+
+# Live model eval (contract §7.2): runs the REAL intake agents through the gateway
+# and asserts on their output. Key-gated — needs the OPENROUTER_API_KEY secret; the
+# harness no-ops (exit 0) when the key is absent, so this is safe before you add it.
+# Per §7.2 the live pass runs on prompt-touch PRs, weekly, and on demand — not every
+# commit (cost + the dev/test $50/mo cap).
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Monday 06:00 UTC
+  pull_request:
+    paths:
+      - "agents/intake-conversation_v1_0.md"
+      - "agents/intake-extraction_v1_0.md"
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orchestrator
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run intake evals (live)
+        run: python -m app.run_evals --mode live

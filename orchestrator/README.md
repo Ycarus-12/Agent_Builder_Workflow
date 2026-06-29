@@ -25,6 +25,8 @@ runs and tests offline on in-memory fakes.
 | `app/logging_audit.py` | §8 | Event log with redaction by sensitivity |
 | `app/ports/` | §1, tool decisions | Model gateway / datastore / emailer / identity seams (+ fakes) |
 | `app/api.py` | — | FastAPI skeleton (health + stage introspection) |
+| `app/agents.py`, `app/runtime.py`, `app/run_intake.py` | §4 | Phase 3: real intake prompts wired end-to-end (CLI: `python -m app.run_intake --fake`) |
+| `app/evals/`, `app/run_evals.py`, `evals/fixtures/` | §7 | Phase 4: eval harness — replay gate (`python -m app.run_evals`) + key-gated live mode |
 
 ## Run
 

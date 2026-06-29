@@ -1,0 +1,44 @@
+case_id: E2
+agent: intake-extraction
+version: 1.0.0
+description: Sparse transcript (Monday reporting; sensitivity & customer-facing never discussed)
+expect_result: pass
+auto_filled:
+  requestor: "M. Chen"
+  team: "Operations"
+  date: "2026-06-26"
+  transcript_reference: "txn/2026-06-26/chen-02"
+transcript: |
+  Requestor: Monday reporting is painful. I assemble the status report by hand every
+  Monday morning. That's about it.
+assertions:
+  schema_valid: true
+  auto_fill_verbatim: true
+  no_prose_outside_json: true
+  data_sensitivity: "unspecified"
+  customer_facing_null: true
+  time_cost_null: true
+  systems_involved_length: 0
+  acceptance_criteria_length: 0
+recorded_output: |
+  {
+    "requestor": "M. Chen",
+    "team": "Operations",
+    "date": "2026-06-26",
+    "request_title": "Monday status reporting is assembled by hand",
+    "problem_outcome": "Reduce the manual effort of assembling Monday status reporting.",
+    "current_workaround": "Assembling the report by hand each Monday morning.",
+    "success_criteria": "Monday report assembled with far less manual effort.",
+    "frequency": "weekly",
+    "who_is_affected": "requestor",
+    "time_cost": null,
+    "deadline": null,
+    "systems_involved": [],
+    "data_sensitivity": "unspecified",
+    "customer_facing": null,
+    "solution_idea": null,
+    "attachments": [],
+    "context_constraints_nuance": null,
+    "acceptance_criteria": [],
+    "transcript_reference": "txn/2026-06-26/chen-02"
+  }
