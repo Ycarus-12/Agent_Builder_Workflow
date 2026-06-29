@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Ycarus-12/registry/schema/record.schema.json",
+  "title": "RegistryRecord",
+  "description": "One capability-registry record. Authored as a single YAML file under records/<type>/. Shared core fields apply to every record; type-specific fields are layered via the conditional blocks below. Enum casing follows Architecture v0.3 Appendix C (Title-Case for registry records); the agent/orchestrator contracts use the lowercase machine enums and the registry_search flatten layer normalizes between them.",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "type",
+    "category",
+    "status",
+    "owner",
+    "data_cleared_for",
+    "discovery",
+    "last_verified",
+    "capabilities"
+  ],
+  "properties": {
+    "id": {
+      "description": "Stable slug; never reused. Must equal the record's filename stem.",
+      "$ref": "#/$defs/slug"
+    },
+    "name": {
+      "description": "Display name.",
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "description": "Record type.",
+      "$ref": "#/$defs/type"
+    },
+    "category": {
+      "description": "From the category vocabulary; grows demand-driven, each addition an approved PR editing this schema and vocabularies.yaml.",
+      "$ref": "#/$defs/category"
+    },
+    "status": {
+      "description": "Lifecycle status.",
+      "$ref": "#/$defs/status"
+    },
+    "owner": {
+      "description": "Accountable role or person.",
+      "type": "string",
+      "minLength": 1
+    },
+    "data_cleared_for": {
+      "description": "One or more sensitivity levels this record is cleared to handle.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/sensitivity" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "discovery": {
+      "description": "How the record was discovered/sourced.",
+      "$ref": "#/$defs/discovery"
+    },
+    "last_verified": {
+      "description": "Date the maintenance agent last verified this record (ISO 8601, YYYY-MM-DD).",
+      "type": "string",
+      "format": "date"
+    },
+    "capabilities": {
+      "description": "List of capability statements. The matchable surface for stack-check/triage.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/capabilityStatement" },
+      "minItems": 1
+    },
+    "notes": {
+      "description": "Free text.",
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "Tool" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "cost_basis": { "$ref": "#/$defs/cost_basis" },
+          "integrations": {
+            "description": "APIs / connection points.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "admin": {
+            "description": "Who administers the tool.",
+            "type": "string"
+          }
+        },
+        "required": ["cost_basis"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "Agent" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "origin": { "const": "built-via-workflow" },
+          "built_date": { "type": "string", "format": "date" },
+          "source_ref": {
+            "description": "Repo path to the built artifact.",
+            "type": "string",
+            "minLength": 1
+          },
+          "model_tier": { "$ref": "#/$defs/model_tier" },
+          "run_cost": {
+            "description": "Token band.",
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["origin", "built_date", "source_ref", "model_tier", "run_cost"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "type": { "const": "Pseudo-Agent" } },
+        "required": ["type"]
+      },
+      "then": {
+        "properties": {
+          "origin": { "const": "Claude Project" },
+          "transitional": { "const": true },
+          "graduation_candidate": {
+            "description": "Set by the portfolio agent.",
+            "type": "boolean"
+          },
+          "replaced_by": {
+            "description": "Optional id of the record that superseded this one.",
+            "type": "string"
+          }
+        },
+        "required": ["origin", "transitional"]
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["Tool", "Agent", "Pseudo-Agent"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Planned", "In build", "In pilot", "In use", "Deprecated"]
+    },
+    "support": {
+      "type": "string",
+      "enum": ["native", "configurable", "not_supported"]
+    },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["None", "Internal", "Customer", "Financial", "Regulated"]
+    },
+    "discovery": {
+      "type": "string",
+      "enum": ["Auto-GitHub", "Auto-SSO", "Manual"]
+    },
+    "cost_basis": {
+      "type": "string",
+      "enum": ["per-seat", "usage", "flat", "free"]
+    },
+    "model_tier": {
+      "type": "string",
+      "enum": ["SLM", "mid", "large/frontier"]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Work management",
+        "CRM",
+        "Finance",
+        "Comms",
+        "Data/analytics",
+        "Dev/engineering"
+      ]
+    },
+    "capabilityStatement": {
+      "type": "object",
+      "description": "Nested capability statement; identical shape across all record types.",
+      "required": ["id", "statement", "support", "data_sensitivity"],
+      "properties": {
+        "id": {
+          "description": "Short reference so agents can match and cite a specific capability.",
+          "$ref": "#/$defs/slug"
+        },
+        "statement": {
+          "description": "A short, problem-shaped phrase matchable to a request, not a marketing feature.",
+          "type": "string",
+          "minLength": 1
+        },
+        "support": {
+          "description": "The hinge into the triage tree.",
+          "$ref": "#/$defs/support"
+        },
+        "data_sensitivity": {
+          "description": "Clearance for this specific capability.",
+          "$ref": "#/$defs/sensitivity"
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}
