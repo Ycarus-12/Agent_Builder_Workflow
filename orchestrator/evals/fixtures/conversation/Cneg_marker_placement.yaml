@@ -1,0 +1,12 @@
+case_id: C_neg_marker_placement
+agent: intake-conversation
+version: 1.0.0
+description: NEGATIVE — marker not on the final non-empty line
+expected_terminal_state: hard_fail_marker_placement
+replay_only: true
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Yes, that's correct."
+recorded_responses:
+  - "[[INTAKE_SIGNOFF_CONFIRMED]]\nLet me know if anything's off."

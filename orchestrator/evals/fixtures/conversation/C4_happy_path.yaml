@@ -1,0 +1,17 @@
+case_id: C4
+agent: intake-conversation
+version: 1.0.0
+description: Full happy path; capture, draft AC, recap, confirm, emit marker once
+expected_terminal_state: marker_fired
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Every time a deal closes I build the kickoff checklist by hand."
+  - role: requestor
+    content: "Auto-create the checklist and notify the owner. Internal only, no customer data."
+  - role: requestor
+    content: "Yes, that's correct."
+recorded_responses:
+  - "So the real problem is the manual checklist after each deal close. How often does it happen?"
+  - "Got it. Draft acceptance criteria: 1) checklist auto-created on deal close, 2) owner notified, 3) each run logged. Shall I record these and your sign-off?"
+  - "Recorded your sign-off.\n\n[[INTAKE_SIGNOFF_CONFIRMED]]"

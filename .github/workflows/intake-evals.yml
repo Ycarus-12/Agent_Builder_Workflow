@@ -1,0 +1,37 @@
+name: intake-evals
+
+# The merge gate (contract §7.3): the deterministic eval harness in REPLAY mode —
+# extraction assertions + conversation hard-fails against recorded/golden fixtures,
+# with negative fixtures proving the gate bites. Runs every commit; no model needed.
+
+on:
+  push:
+    paths:
+      - "orchestrator/**"
+      - "agents/intake-conversation_v1_0.md"
+      - "agents/intake-extraction_v1_0.md"
+      - "evals/intake-evals_v1_0.md"
+      - ".github/workflows/intake-evals.yml"
+  pull_request:
+    paths:
+      - "orchestrator/**"
+      - "agents/intake-conversation_v1_0.md"
+      - "agents/intake-extraction_v1_0.md"
+      - "evals/intake-evals_v1_0.md"
+      - ".github/workflows/intake-evals.yml"
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run intake evals (replay)
+        run: python -m app.run_evals --mode replay

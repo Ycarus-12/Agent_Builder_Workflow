@@ -1,0 +1,14 @@
+case_id: C1
+agent: intake-conversation
+version: 1.0.0
+description: Requestor opens with a named tool; agent reframes to the problem
+expected_terminal_state: conversation_in_progress
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Build me a Zapier zap."
+  - role: requestor
+    content: "When a deal closes I make a kickoff checklist by hand, a few times a week."
+recorded_responses:
+  - "Happy to capture this. Setting the specific tool aside for a moment, what's the underlying task you're trying to streamline?"
+  - "Got it, a recurring manual checklist after each deal close. I'll note Zapier as a non-binding idea. Who else is affected?"

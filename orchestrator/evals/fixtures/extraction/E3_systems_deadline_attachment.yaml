@@ -1,0 +1,42 @@
+case_id: E3
+agent: intake-extraction
+version: 1.0.0
+description: Transcript naming two systems + a deadline + an attachment link
+expect_result: pass
+auto_filled:
+  requestor: "P. Ortiz"
+  team: "Sales Ops"
+  date: "2026-06-26"
+  transcript_reference: "txn/2026-06-26/ortiz-03"
+transcript: |
+  Requestor: We need Salesforce and Slack connected so deal updates post to a channel.
+  It needs to be live by end of Q3. Here's the spec: https://example.internal/spec-doc
+assertions:
+  schema_valid: true
+  auto_fill_verbatim: true
+  no_prose_outside_json: true
+  systems_involved_contains: ["Salesforce", "Slack"]
+  deadline_present: true
+  attachments_present: true
+recorded_output: |
+  {
+    "requestor": "P. Ortiz",
+    "team": "Sales Ops",
+    "date": "2026-06-26",
+    "request_title": "Post Salesforce deal updates to a Slack channel",
+    "problem_outcome": "Surface deal updates from Salesforce in a Slack channel automatically.",
+    "current_workaround": null,
+    "success_criteria": "Deal updates in Salesforce post to the designated Slack channel.",
+    "frequency": null,
+    "who_is_affected": "team",
+    "time_cost": null,
+    "deadline": "end of Q3",
+    "systems_involved": ["Salesforce", "Slack"],
+    "data_sensitivity": "unspecified",
+    "customer_facing": null,
+    "solution_idea": null,
+    "attachments": ["https://example.internal/spec-doc"],
+    "context_constraints_nuance": null,
+    "acceptance_criteria": [],
+    "transcript_reference": "txn/2026-06-26/ortiz-03"
+  }

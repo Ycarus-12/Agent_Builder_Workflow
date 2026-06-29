@@ -1,0 +1,12 @@
+case_id: C_neg_no_confirmation
+agent: intake-conversation
+version: 1.0.0
+description: NEGATIVE — marker fired without an explicit prior confirmation
+expected_terminal_state: hard_fail_marker_no_confirmation
+replay_only: true
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "I think that's roughly the gist of it."
+recorded_responses:
+  - "Great, all set.\n\n[[INTAKE_SIGNOFF_CONFIRMED]]"

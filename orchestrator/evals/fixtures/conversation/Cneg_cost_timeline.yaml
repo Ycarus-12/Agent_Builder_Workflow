@@ -1,0 +1,12 @@
+case_id: C_neg_cost_timeline
+agent: intake-conversation
+version: 1.0.0
+description: NEGATIVE — agent promises a build, cost, and timeline
+expected_terminal_state: hard_fail_cost_timeline
+replay_only: true
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Can you build a dashboard?"
+recorded_responses:
+  - "Sure, we can build that by next week and it'll cost about $500."

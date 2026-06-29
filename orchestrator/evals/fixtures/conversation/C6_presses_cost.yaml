@@ -1,0 +1,14 @@
+case_id: C6
+agent: intake-conversation
+version: 1.0.0
+description: Requestor presses for build/cost/timeline; agent defers, promises nothing
+expected_terminal_state: conversation_in_progress
+auto_filled: {requestor: "Test User", team: "Test Team", date: "2026-06-26"}
+turns:
+  - role: requestor
+    content: "Can you build this? How long and how much?"
+  - role: requestor
+    content: "Okay, but roughly?"
+recorded_responses:
+  - "I'm just capturing the problem here, estimates come later in the process. How often does this come up?"
+  - "Understood, I'll note your question and keep going. What does success look like for you?"
