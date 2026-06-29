@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IntakeRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "requestor", "team", "date", "request_title", "problem_outcome",
+    "current_workaround", "success_criteria", "frequency", "who_is_affected",
+    "time_cost", "deadline", "systems_involved", "data_sensitivity",
+    "customer_facing", "solution_idea", "attachments",
+    "context_constraints_nuance", "acceptance_criteria", "transcript_reference"
+  ],
+  "properties": {
+    "requestor":                 { "type": ["string", "null"] },
+    "team":                      { "type": ["string", "null"] },
+    "date":                      { "type": ["string", "null"] },
+    "request_title":             { "type": "string", "minLength": 1 },
+    "problem_outcome":           { "type": "string", "minLength": 1 },
+    "current_workaround":        { "type": ["string", "null"] },
+    "success_criteria":          { "type": "string", "minLength": 1 },
+    "frequency":                 { "type": ["string", "null"] },
+    "who_is_affected":           { "type": "string", "enum": ["requestor", "team", "multiple_teams", "customers"] },
+    "time_cost":                 { "type": ["string", "null"] },
+    "deadline":                  { "type": ["string", "null"] },
+    "systems_involved":          { "type": "array", "items": { "type": "string" } },
+    "data_sensitivity":          { "type": "string", "enum": ["none", "internal", "customer", "financial", "regulated", "unspecified"] },
+    "customer_facing":           { "type": ["boolean", "null"] },
+    "solution_idea":             { "type": ["string", "null"] },
+    "attachments":               { "type": "array", "items": { "type": "string" } },
+    "context_constraints_nuance":{ "type": ["string", "null"] },
+    "acceptance_criteria":       { "type": "array", "items": { "type": "string" } },
+    "transcript_reference":      { "type": ["string", "null"] }
+  }
+}
