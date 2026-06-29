@@ -1,0 +1,26 @@
+name: orchestrator-tests
+
+# Runs the orchestrator spine's unit + fake end-to-end tests. Scoped to changes
+# under orchestrator/ so it doesn't fire on registry-only or docs-only commits.
+
+on:
+  push:
+    paths: ["orchestrator/**", ".github/workflows/orchestrator-tests.yml"]
+  pull_request:
+    paths: ["orchestrator/**", ".github/workflows/orchestrator-tests.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: pytest -q

@@ -1,0 +1,10 @@
+[project]
+name = "tool-request-orchestrator"
+version = "0.1.0"
+description = "Deterministic orchestrator spine for the agentic tool-request workflow"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+# Make the `app` package importable when running pytest from this directory.
+pythonpath = ["."]
+testpaths = ["tests"]
