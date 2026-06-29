@@ -1,0 +1,28 @@
+# SCHEMA EXAMPLE — not a live registry record. Lives outside records/ so it is
+# never read as inventory. Exists only so CI exercises the Tool type branch.
+id: tool-example
+name: Example Tool
+type: Tool
+category: Work management
+status: In use
+owner: Example Owner
+data_cleared_for:
+  - Internal
+  - Customer
+discovery: Manual
+last_verified: "2026-06-29"
+capabilities:
+  - id: tool-example-c01
+    statement: Create a task or checklist from an upstream event
+    support: native
+    data_sensitivity: Customer
+  - id: tool-example-c02
+    statement: Log time entries against a project
+    support: configurable
+    data_sensitivity: Internal
+cost_basis: per-seat
+integrations:
+  - REST API
+  - Webhooks
+admin: Platform team
+notes: Illustrative Tool record used only for schema-branch coverage.

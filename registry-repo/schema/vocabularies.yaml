@@ -1,0 +1,74 @@
+# Controlled vocabularies for the capability registry.
+#
+# Source of truth for the MACHINE GATE is schema/record.schema.json ($defs). This
+# file is the human-readable mirror of those enums. The CI validator
+# (tools/validate_registry.py) cross-checks the two and FAILS on any drift, so
+# edit both together in the same PR.
+#
+# Casing note (Architecture v0.3, Appendix C): registry records use Title-Case
+# for `status` and `sensitivity`. The agent/orchestrator JSON contracts use the
+# lowercase machine enums from context §5; the registry_search flatten layer
+# normalizes Title-Case -> lowercase (and renames capability `data_sensitivity`
+# -> `data_sensitivity_clearance`) at that boundary. Do not "fix" the casing
+# here to match §5 — the divergence is intentional and locked.
+
+# --- Record core -----------------------------------------------------------
+
+type:
+  - Tool
+  - Agent
+  - Pseudo-Agent
+
+status:
+  - Planned
+  - In build
+  - In pilot
+  - In use
+  - Deprecated
+
+discovery:
+  - Auto-GitHub
+  - Auto-SSO
+  - Manual
+
+# `category` grows demand-driven. Each addition is an approved PR that edits BOTH
+# this list and the matching enum in record.schema.json ($defs.category).
+category:
+  - Work management
+  - CRM
+  - Finance
+  - Comms
+  - Data/analytics
+  - Dev/engineering
+
+# --- Capability statement --------------------------------------------------
+
+# The hinge into the triage tree (native/configurable -> configure;
+# not_supported -> build/buy).
+support:
+  - native
+  - configurable
+  - not_supported
+
+# Used by record.data_cleared_for and capability.data_sensitivity.
+sensitivity:
+  - None
+  - Internal
+  - Customer
+  - Financial
+  - Regulated
+
+# --- Type-specific ---------------------------------------------------------
+
+# Tool records.
+cost_basis:
+  - per-seat
+  - usage
+  - flat
+  - free
+
+# Agent records (run_cost is a free-text token band, not enumerated here).
+model_tier:
+  - SLM
+  - mid
+  - large/frontier

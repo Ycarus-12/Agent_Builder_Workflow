@@ -1,0 +1,23 @@
+# NEGATIVE fixture — MUST fail validation. Two distinct violations:
+#   1. `status` uses a value outside the controlled vocabulary.
+#   2. Agent-only fields (origin/source_ref) appear on a Tool record; with
+#      unevaluatedProperties:false these are rejected, proving type-specific
+#      fields can't leak across types.
+id: invalid-bad-enum
+name: Bad Enum Record
+type: Tool
+category: CRM
+status: Live          # not a valid status (Planned/In build/In pilot/In use/Deprecated)
+owner: Example Owner
+data_cleared_for:
+  - Internal
+discovery: Manual
+last_verified: "2026-06-29"
+cost_basis: flat
+capabilities:
+  - id: invalid-bad-enum-c01
+    statement: Does something
+    support: native
+    data_sensitivity: Internal
+origin: built-via-workflow   # Agent field on a Tool — must be rejected
+source_ref: some/path        # Agent field on a Tool — must be rejected

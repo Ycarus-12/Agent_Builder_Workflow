@@ -1,0 +1,23 @@
+# SCHEMA EXAMPLE — not a live registry record. Lives outside records/ so it is
+# never read as inventory. Exists only so CI exercises the Agent type branch.
+id: agent-example
+name: Example Built Agent
+type: Agent
+category: Data/analytics
+status: In pilot
+owner: Example Owner
+data_cleared_for:
+  - Internal
+discovery: Auto-GitHub
+last_verified: "2026-06-29"
+capabilities:
+  - id: agent-example-c01
+    statement: Summarize a recurring report from connected data sources
+    support: native
+    data_sensitivity: Internal
+origin: built-via-workflow
+built_date: "2026-06-15"
+source_ref: Ycarus-12/some-built-artifact
+model_tier: mid
+run_cost: "~10k-50k tokens/run"
+notes: Illustrative Agent record used only for schema-branch coverage.

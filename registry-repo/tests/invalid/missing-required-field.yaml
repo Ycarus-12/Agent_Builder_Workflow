@@ -1,0 +1,11 @@
+# NEGATIVE fixture — MUST fail validation. Missing required `capabilities`,
+# `data_cleared_for`, and `last_verified`. Proves the gate rejects incomplete
+# records.
+id: invalid-missing-fields
+name: Incomplete Record
+type: Tool
+category: CRM
+status: In use
+owner: Example Owner
+discovery: Manual
+cost_basis: flat

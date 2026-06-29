@@ -1,0 +1,29 @@
+name: registry-validate
+
+# Merge gate: every record must validate against the schema and the registry's
+# invariants before a PR can merge. Mirror this job name in the branch-protection
+# required-status-checks setting (see README "Branch protection").
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r tools/requirements.txt
+
+      - name: Validate registry
+        run: python tools/validate_registry.py

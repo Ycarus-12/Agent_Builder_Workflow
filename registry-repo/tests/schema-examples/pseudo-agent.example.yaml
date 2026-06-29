@@ -1,0 +1,21 @@
+# SCHEMA EXAMPLE — not a live registry record. Lives outside records/ so it is
+# never read as inventory. Exists only so CI exercises the Pseudo-Agent branch.
+id: pseudo-agent-example
+name: Example Pseudo-Agent
+type: Pseudo-Agent
+category: Comms
+status: In use
+owner: Example Owner
+data_cleared_for:
+  - Internal
+discovery: Manual
+last_verified: "2026-06-29"
+capabilities:
+  - id: pseudo-agent-example-c01
+    statement: Draft a first-pass response from a shared knowledge base
+    support: native
+    data_sensitivity: Internal
+origin: Claude Project
+transitional: true
+graduation_candidate: false
+notes: Illustrative Pseudo-Agent record used only for schema-branch coverage.
