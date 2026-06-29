@@ -44,6 +44,10 @@ class AgentSpec:
     block_names: tuple[str, ...]
     # JSON Schema for the declared structured output; required iff STRUCTURED.
     output_schema: dict | None = None
+    # The agent's system-prompt body (loaded from agents/<name>.md). Empty for the
+    # in-memory fakes/tests that don't exercise a real model; the real gateway
+    # sends it as the system message.
+    system_prompt: str = ""
 
     def __post_init__(self) -> None:
         if self.output_mode is OutputMode.STRUCTURED and self.output_schema is None:
