@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 
 from ..invocation import InputEnvelope, OutputMode
+from .chat import ChatGateway, ChatTurn, ToolCall
 
 
 class ModelGateway(ABC):
@@ -66,7 +67,7 @@ class GatewayError(RuntimeError):
 _EMIT_TOOL = "emit_record"
 
 
-class OpenRouterGateway(ModelGateway):
+class OpenRouterGateway(ModelGateway, ChatGateway):
     """Real provider-neutral adapter: OpenRouter's OpenAI-compatible chat API.
 
     Single-provider (Anthropic) to start, routed via OpenRouter model namespacing.
@@ -155,3 +156,45 @@ class OpenRouterGateway(ModelGateway):
                     f"structured agent '{spec.name}' did not return a tool call: {message}"
                 ) from exc
         return message.get("content") or ""
+
+    def chat(self, *, agent_name, system_prompt, messages, tools, tool_choice="auto") -> ChatTurn:
+        """One tool-use chat turn (used by the stack-check registry_search loop)."""
+        import json
+
+        import httpx
+
+        model, max_tokens = self._resolve(agent_name)
+        payload = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "messages": [{"role": "system", "content": system_prompt}, *messages],
+            "tools": tools,
+            "tool_choice": tool_choice,
+        }
+        try:
+            resp = httpx.post(
+                f"{self._config.base_url}/chat/completions",
+                headers=self._headers(),
+                json=payload,
+                timeout=120.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except httpx.HTTPError as exc:
+            raise GatewayError(f"gateway transport error for '{agent_name}': {exc}") from exc
+
+        try:
+            message = data["choices"][0]["message"]
+        except (KeyError, IndexError) as exc:
+            raise GatewayError(f"malformed gateway response for '{agent_name}': {data}") from exc
+
+        tool_calls = []
+        for tc in message.get("tool_calls") or []:
+            fn = tc.get("function", {})
+            args = fn.get("arguments", "{}")
+            try:
+                parsed = json.loads(args) if isinstance(args, str) else (args or {})
+            except json.JSONDecodeError:
+                parsed = {}
+            tool_calls.append(ToolCall(id=tc.get("id", ""), name=fn.get("name", ""), arguments=parsed))
+        return ChatTurn(content=message.get("content"), tool_calls=tool_calls)
