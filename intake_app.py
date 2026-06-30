@@ -82,7 +82,11 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.begin)
     def _begin():
-        rid = start_intake(services, name=input.name(), email=input.email(), team=input.team())
+        try:
+            rid = start_intake(services, name=input.name(), email=input.email(), team=input.team())
+        except Exception as exc:  # datastore/config error — surface, don't crash
+            ui.notification_show(f"Couldn't start your request: {exc}", type="error", duration=10)
+            return
         request_id.set(rid)
 
     @reactive.effect
@@ -90,7 +94,11 @@ def server(input, output, session):
     def _send():
         msg = input.message()
         if msg and msg.strip():
-            submit_message(services, request_id(), msg)
+            try:
+                submit_message(services, request_id(), msg)
+            except Exception as exc:  # gateway/datastore error — surface, don't crash
+                ui.notification_show(f"Something went wrong: {exc}", type="error", duration=10)
+                return
             refresh.set(refresh() + 1)
 
 

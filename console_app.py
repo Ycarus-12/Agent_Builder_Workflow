@@ -27,13 +27,16 @@ _POSIT_HEAD = ui.tags.head(
         "body{font-family:'Open Sans',system-ui,sans-serif;}"
         ".btn-primary{background-color:#447099;border-color:#447099;}"
         "h1,h2,h3{font-weight:300;}"
+        ".errbox{color:#9a4665;font-size:.85rem;border:1px solid #e6c3cf;background:#faf0f3;"
+        "padding:.5rem .7rem;border-radius:8px;margin:.5rem 0;}"
     ),
 )
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
         ui.input_action_button("refresh", "Refresh", class_="btn-primary"),
-        ui.output_ui("request_list"),
+        ui.output_ui("error_banner"),
+        ui.input_select("request", "Requests", choices={}),
         width=320,
     ),
     _POSIT_HEAD,
@@ -44,36 +47,45 @@ app_ui = ui.page_sidebar(
 
 
 def server(input, output, session):
-    selected = reactive.value(None)
     refresh = reactive.value(0)
 
     @reactive.calc
     def summaries():
         refresh()
-        return list_summaries(services)
+        try:
+            return {"data": list_summaries(services), "error": None}
+        except Exception as exc:  # datastore/config error — surface, don't crash
+            return {"data": [], "error": str(exc)}
 
     @render.ui
-    def request_list():
-        rows = []
-        for s in summaries():
-            label = f"{s.request_title} — {s.status.replace('_', ' ')}"
-            rows.append(ui.input_action_link(f"pick_{s.request_id}", label))
-            rows.append(ui.br())
-        return ui.div(ui.h4("Requests"), *(rows or [ui.p("No requests yet.")]))
+    def error_banner():
+        err = summaries()["error"]
+        if err:
+            return ui.div(ui.tags.b("Can't reach the datastore. "), err, class_="errbox")
+        return None
 
-    # One observer per request id to set the selection when its link is clicked.
     @reactive.effect
-    def _wire_picks():
-        for s in summaries():
-            _bind_pick(input, selected, s.request_id)
+    def _populate():
+        data = summaries()["data"]
+        choices = {s.request_id: f"{s.request_title} — {s.status.replace('_', ' ')}" for s in data}
+        current = input.request()
+        ui.update_select("request", choices=choices, selected=current if current in choices else None)
+
+    @reactive.effect
+    @reactive.event(input.refresh)
+    def _do_refresh():
+        refresh.set(refresh() + 1)
 
     @render.ui
     def detail():
         refresh()
-        rid = selected()
+        rid = input.request()
         if not rid:
             return ui.p(ui.tags.em("Select a request from the left."))
-        d = request_detail(services, rid)
+        try:
+            d = request_detail(services, rid)
+        except Exception as exc:
+            return ui.div(ui.tags.b("Error loading request. "), str(exc), class_="errbox")
         step, contact = d["step"], d["contact"]
         head = [ui.h3(d["title"]),
                 ui.p(ui.tags.b(step.kind.replace("_", " ")), f" · stage: {step.stage} · {rid}")]
@@ -84,19 +96,16 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.submit_decision)
     def _decide():
-        rid = selected()
+        rid = input.request()
         if not rid:
             return
-        step = request_detail(services, rid)["step"]
-        _dispatch(input, services, rid, step)
+        try:
+            step = request_detail(services, rid)["step"]
+            _dispatch(input, services, rid, step)
+        except Exception as exc:
+            ui.notification_show(f"Decision failed: {exc}", type="error", duration=10)
+            return
         refresh.set(refresh() + 1)
-
-
-def _bind_pick(input, selected, request_id: str):
-    @reactive.effect
-    @reactive.event(input[f"pick_{request_id}"])
-    def _():
-        selected.set(request_id)
 
 
 def _controls(step):
