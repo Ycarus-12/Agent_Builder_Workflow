@@ -25,6 +25,8 @@ _SCHEMA_DIR = Path(__file__).resolve().parent / "schemas"
 
 INTAKE_CONVERSATION_FILE = "intake-conversation_v1_0.md"
 INTAKE_EXTRACTION_FILE = "intake-extraction_v1_0.md"
+STACK_CHECK_FILE = "stack-check_v1_0.md"
+TRIAGE_FILE = "triage-recommender_v1_0.md"
 
 
 def _split_frontmatter(text: str) -> tuple[dict, str]:
@@ -76,6 +78,16 @@ def intake_record_schema() -> dict:
     return json.loads((_SCHEMA_DIR / "intake_record.json").read_text(encoding="utf-8"))
 
 
+@lru_cache(maxsize=1)
+def stack_check_finding_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "stack_check_finding.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def triage_output_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "triage_output.json").read_text(encoding="utf-8"))
+
+
 def load_intake_conversation_spec() -> AgentSpec:
     front, body = load_agent_artifact(INTAKE_CONVERSATION_FILE)
     return AgentSpec(
@@ -99,5 +111,35 @@ def load_intake_extraction_spec() -> AgentSpec:
         output_mode=OutputMode.STRUCTURED,
         block_names=("Auto-filled", "TRANSCRIPT"),
         output_schema=intake_record_schema(),
+        system_prompt=body,
+    )
+
+
+def load_stack_check_spec() -> AgentSpec:
+    # stack-check also calls the registry_search tool mid-invocation (handled by the
+    # runtime tool-loop); this spec covers its final forced structured finding.
+    front, body = load_agent_artifact(STACK_CHECK_FILE)
+    return AgentSpec(
+        name="stack-check",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.MID,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("intake_record",),
+        output_schema=stack_check_finding_schema(),
+        system_prompt=body,
+    )
+
+
+def load_triage_spec() -> AgentSpec:
+    front, body = load_agent_artifact(TRIAGE_FILE)
+    return AgentSpec(
+        name="triage-recommender",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.HIGH,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("intake_record", "transcript", "stack_check_result"),
+        output_schema=triage_output_schema(),
         system_prompt=body,
     )

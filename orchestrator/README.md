@@ -26,7 +26,9 @@ runs and tests offline on in-memory fakes.
 | `app/ports/` | §1, tool decisions | Model gateway / datastore / emailer / identity seams (+ fakes) |
 | `app/api.py` | — | FastAPI skeleton (health + stage introspection) |
 | `app/agents.py`, `app/runtime.py`, `app/run_intake.py` | §4 | Phase 3: real intake prompts wired end-to-end (CLI: `python -m app.run_intake --fake`) |
-| `app/evals/`, `app/run_evals.py`, `evals/fixtures/` | §7 | Phase 4: eval harness — replay gate (`python -m app.run_evals`) + key-gated live mode |
+| `app/evals/`, `app/run_evals.py`, `evals/fixtures/` | §7 | Phase 4-5: eval harness — replay gate (`python -m app.run_evals --suite all`) + key-gated live mode |
+| `app/registry/` | §3, Appendix C | Phase 5: registry_search infra (source seam, flatten layer, deterministic search) for stack-check |
+| `app/evals/stack_check_assertions.py`, `triage_assertions.py` | §7 | Phase 5: stack-check + triage eval suites (replay-gated) |
 
 ## Run
 

@@ -1,0 +1,48 @@
+case_id: S1
+agent: stack-check
+version: 1.0.0
+description: Native match, clearance meets floor; clean coverage finding
+expect_result: pass
+intake_record:
+  request_title: "Auto-create kickoff checklist on deal close"
+  problem_outcome: "Create a kickoff checklist in the work-management tool when a deal closes in the CRM."
+  systems_involved: ["CRM", "work-management tool"]
+  data_sensitivity: "customer"
+registry_mock:
+  response:
+    - record_id: "wmt-001"
+      record_name: "Work-Management Tool"
+      capability_id: "wmt-001-c02"
+      capability_statement: "Trigger task or checklist creation from CRM deal-close events"
+      support: "native"
+      data_sensitivity_clearance: "customer"
+assertions:
+  schema_valid: true
+  no_prose_outside_json: true
+  no_existing_coverage: false
+  registry_confidence: "high"
+  all_mock_matches_present: true
+  matches_length: 1
+  matches_0_support: "native"
+  sensitivity_floor_applied: "customer"
+  no_recommendation_language: true
+  systems_searched_contains: ["CRM", "work-management tool"]
+recorded_output: |
+  {
+    "request_title": "Auto-create kickoff checklist on deal close",
+    "matches": [
+      {
+        "record_id": "wmt-001",
+        "record_name": "Work-Management Tool",
+        "capability_id": "wmt-001-c02",
+        "capability_statement": "Trigger task or checklist creation from CRM deal-close events",
+        "support": "native",
+        "data_sensitivity_clearance": "customer",
+        "relevance_note": "Covers the deal-close to checklist trigger; clearance spans customer data."
+      }
+    ],
+    "no_existing_coverage": false,
+    "registry_confidence": "high",
+    "finding_summary": "The registry returned one native match in the work-management tool covering checklist creation on deal close, with clearance for customer data. Confidence is high.",
+    "systems_searched": ["CRM", "work-management tool"]
+  }

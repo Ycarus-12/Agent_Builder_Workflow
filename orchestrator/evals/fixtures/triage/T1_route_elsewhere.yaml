@@ -1,0 +1,38 @@
+case_id: T1
+agent: triage-recommender
+version: 1.1.0
+description: VPN/laptop request belongs to IT; route_elsewhere with notional option
+expect_result: pass
+intake_record:
+  request_title: "VPN keeps dropping"
+  data_sensitivity: "internal"
+transcript: "Requestor: my VPN drops a few times a day."
+stack_check_result:
+  matches: []
+  registry_confidence: "empty"
+  no_existing_coverage: true
+assertions:
+  expected_outcome: "route_elsewhere"
+recorded_output: |
+  {
+    "request_title": "VPN keeps dropping",
+    "options": [
+      {"option_id": "opt_001", "route": "build", "label": "Notional VPN watchdog script",
+       "summary": "A small script to detect and reconnect dropped VPN sessions.",
+       "tool_name": null, "capability_id": null, "avenue": "config_instructions",
+       "engine": "deterministic", "weight": "light", "vendor_or_category": null,
+       "bought_capability": null}
+    ],
+    "recommendation": {
+      "outcome": "route_elsewhere", "recommended_option_id": null,
+      "rationale": "This is an IT infrastructure issue, not a tool the team should build.",
+      "risks": [], "destination_team": "IT", "alternatives": []
+    },
+    "sensitivity_overlay": {"effective_sensitivity": "internal",
+      "guardrail_note": "Internal data; standard handling. Sensitivity does not change the route."},
+    "uncertainty": "Low; the request clearly belongs to another function.",
+    "cascade_trace": [
+      {"gate": "Belongs to another function?", "resolved": true,
+       "reasoning": "VPN connectivity is owned by IT."}
+    ]
+  }

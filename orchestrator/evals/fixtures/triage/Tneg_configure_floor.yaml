@@ -1,0 +1,44 @@
+case_id: T_neg_configure_floor
+agent: triage-recommender
+version: 1.1.0
+description: NEGATIVE — a configure option present despite empty/no-coverage stack-check
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Something buildable"
+  data_sensitivity: "internal"
+transcript: "x"
+stack_check_result:
+  matches: []
+  registry_confidence: "empty"
+  no_existing_coverage: true
+assertions:
+  expected_outcome: "build"
+recorded_output: |
+  {
+    "request_title": "Something buildable",
+    "options": [
+      {"option_id": "opt_001", "route": "build", "label": "Build it",
+       "summary": "Build the thing.", "tool_name": null, "capability_id": null,
+       "avenue": "code", "engine": "deterministic", "weight": "light",
+       "vendor_or_category": null, "bought_capability": null},
+      {"option_id": "opt_002", "route": "configure", "label": "Configure a tool",
+       "summary": "Configure a tool that the registry never returned.",
+       "tool_name": "Phantom Tool", "capability_id": "phantom-c01", "avenue": null,
+       "engine": null, "weight": null, "vendor_or_category": null, "bought_capability": null}
+    ],
+    "recommendation": {
+      "outcome": "build", "recommended_option_id": "opt_001",
+      "rationale": "Build.", "risks": [], "destination_team": null, "alternatives": []
+    },
+    "sensitivity_overlay": {"effective_sensitivity": "internal", "guardrail_note": "Standard; route unchanged."},
+    "uncertainty": "Low.",
+    "cascade_trace": [
+      {"gate": "Belongs to another function?", "resolved": false, "reasoning": "Team-owned."},
+      {"gate": "Worth solving?", "resolved": false, "reasoning": "Worth it."},
+      {"gate": "Does a tool we own fit?", "resolved": false, "reasoning": "No match."},
+      {"gate": "Process or training gap?", "resolved": false, "reasoning": "No."},
+      {"gate": "Does buying beat building?", "resolved": false, "reasoning": "No."},
+      {"gate": "Otherwise build", "resolved": true, "reasoning": "Build."}
+    ]
+  }

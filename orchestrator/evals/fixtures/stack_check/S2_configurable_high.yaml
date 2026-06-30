@@ -1,0 +1,47 @@
+case_id: S2
+agent: stack-check
+version: 1.0.0
+description: Configurable match, clearance meets floor (internal)
+expect_result: pass
+intake_record:
+  request_title: "Route inbound leads to the right rep"
+  problem_outcome: "Assign new leads to a sales rep by territory."
+  systems_involved: ["CRM"]
+  data_sensitivity: "internal"
+registry_mock:
+  response:
+    - record_id: "crm-002"
+      record_name: "CRM Platform"
+      capability_id: "crm-002-c07"
+      capability_statement: "Rule-based lead assignment by territory"
+      support: "configurable"
+      data_sensitivity_clearance: "customer"
+assertions:
+  schema_valid: true
+  no_prose_outside_json: true
+  no_existing_coverage: false
+  registry_confidence: "high"
+  all_mock_matches_present: true
+  matches_length: 1
+  matches_0_support: "configurable"
+  sensitivity_floor_applied: "internal"
+  no_recommendation_language: true
+recorded_output: |
+  {
+    "request_title": "Route inbound leads to the right rep",
+    "matches": [
+      {
+        "record_id": "crm-002",
+        "record_name": "CRM Platform",
+        "capability_id": "crm-002-c07",
+        "capability_statement": "Rule-based lead assignment by territory",
+        "support": "configurable",
+        "data_sensitivity_clearance": "customer",
+        "relevance_note": "Lead-routing capability that can be configured by territory; clearance exceeds the internal floor."
+      }
+    ],
+    "no_existing_coverage": false,
+    "registry_confidence": "high",
+    "finding_summary": "One configurable lead-routing capability exists in the CRM platform; clearance exceeds the internal floor. Confidence is high.",
+    "systems_searched": ["CRM"]
+  }

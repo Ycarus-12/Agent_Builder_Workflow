@@ -1,0 +1,42 @@
+case_id: T_neg_trace
+agent: triage-recommender
+version: 1.1.0
+description: NEGATIVE — resolved gate is not the last cascade_trace entry
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Lead routing"
+  data_sensitivity: "internal"
+transcript: "x"
+stack_check_result:
+  matches:
+    - record_id: "crm-002"
+      capability_id: "crm-002-c07"
+      support: "configurable"
+      data_sensitivity_clearance: "customer"
+  registry_confidence: "high"
+  no_existing_coverage: false
+assertions:
+  expected_outcome: "configure"
+recorded_output: |
+  {
+    "request_title": "Lead routing",
+    "options": [
+      {"option_id": "opt_001", "route": "configure", "label": "Configure routing",
+       "summary": "Configure it.", "tool_name": "CRM Platform", "capability_id": "crm-002-c07",
+       "avenue": null, "engine": null, "weight": null, "vendor_or_category": null,
+       "bought_capability": null}
+    ],
+    "recommendation": {
+      "outcome": "configure", "recommended_option_id": "opt_001",
+      "rationale": "Configure.", "risks": [], "destination_team": null, "alternatives": []
+    },
+    "sensitivity_overlay": {"effective_sensitivity": "internal", "guardrail_note": "Standard; route unchanged."},
+    "uncertainty": "Low.",
+    "cascade_trace": [
+      {"gate": "Belongs to another function?", "resolved": false, "reasoning": "Team-owned."},
+      {"gate": "Worth solving?", "resolved": false, "reasoning": "Worth it."},
+      {"gate": "Does a tool we own fit?", "resolved": true, "reasoning": "Configurable match."},
+      {"gate": "Process or training gap?", "resolved": false, "reasoning": "Trailing gate after the resolution."}
+    ]
+  }
