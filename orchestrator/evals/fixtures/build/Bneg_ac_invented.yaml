@@ -1,0 +1,30 @@
+case_id: B_neg_ac_invented
+agent: build-agent
+version: 1.0.0
+description: NEGATIVE — acceptance_criteria_map invents a criterion not in input
+expect_result: fail
+replay_only: true
+build_type: "code"
+acceptance_criteria:
+  - "Owner notified"
+spec_context:
+  data_sensitivity: "internal"
+assertions:
+  ac_coverage: true
+recorded_output: |
+  {
+    "request_title": "Notify owner",
+    "build_type": "code",
+    "build_status": "complete",
+    "artifact": {"repo_path": "Ycarus-12/notify", "commit_hash": "deadbee", "staging_ref": null, "config_guide": null},
+    "artifact_summary": "Owner notifier.",
+    "acceptance_criteria_map": [
+      {"criterion": "Owner notified", "addressed_by": "notify.py:notify_owner()"},
+      {"criterion": "Logs every run to an audit table", "addressed_by": "notify.py:audit()"}
+    ],
+    "qa_entrypoint": {"instructions": "Run it.", "run_command": "python notify.py", "dependencies": [], "environment_notes": null},
+    "verification_status": "verifiable",
+    "build_facts": ["compiles without errors"],
+    "assumptions": [],
+    "questions": []
+  }

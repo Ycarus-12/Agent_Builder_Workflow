@@ -1,0 +1,28 @@
+case_id: B5
+agent: build-agent
+version: 1.0.0
+description: under-specified spec; needs_input with precise questions, builds nothing
+expect_result: pass
+build_type: "code"
+acceptance_criteria:
+  - "Generate the weekly report"
+spec_context:
+  data_sensitivity: "internal"
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Generate the weekly report",
+    "build_type": "code",
+    "build_status": "needs_input",
+    "artifact": null,
+    "artifact_summary": "No artifact built; awaiting Director input on the report's contents and source.",
+    "acceptance_criteria_map": [],
+    "qa_entrypoint": null,
+    "verification_status": "verifiable",
+    "build_facts": [],
+    "assumptions": [],
+    "questions": [
+      {"id": "q1", "question": "Which systems are the report's data sources?", "why_needed": "The spec lists a template but no data source to populate it.", "options": ["CRM", "spreadsheet export", "data warehouse"]},
+      {"id": "q2", "question": "What is the exact set of columns required?", "why_needed": "The template fields are unnamed.", "options": []}
+    ]
+  }

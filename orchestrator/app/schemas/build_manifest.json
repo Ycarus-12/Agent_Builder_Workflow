@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BuildManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_title", "build_type", "build_status", "artifact", "artifact_summary", "acceptance_criteria_map", "qa_entrypoint", "verification_status", "build_facts", "assumptions", "questions"],
+  "properties": {
+    "request_title": { "type": "string", "minLength": 1 },
+    "build_type": { "type": "string", "enum": ["code", "agent_creation", "config_applied", "config_instructions"] },
+    "build_status": { "type": "string", "enum": ["complete", "needs_input"] },
+    "artifact": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["repo_path", "commit_hash", "staging_ref", "config_guide"],
+      "properties": {
+        "repo_path": { "type": ["string", "null"] },
+        "commit_hash": { "type": ["string", "null"] },
+        "staging_ref": { "type": ["string", "null"] },
+        "config_guide": { "type": ["string", "null"] }
+      }
+    },
+    "artifact_summary": { "type": "string", "minLength": 1 },
+    "acceptance_criteria_map": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "addressed_by"],
+        "properties": {
+          "criterion": { "type": "string", "minLength": 1 },
+          "addressed_by": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "qa_entrypoint": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["instructions", "run_command", "dependencies", "environment_notes"],
+      "properties": {
+        "instructions": { "type": "string", "minLength": 1 },
+        "run_command": { "type": ["string", "null"] },
+        "dependencies": { "type": "array", "items": { "type": "string" } },
+        "environment_notes": { "type": ["string", "null"] }
+      }
+    },
+    "verification_status": { "type": "string", "enum": ["verifiable", "unverified_validate_on_apply"] },
+    "build_facts": { "type": "array", "items": { "type": "string" } },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "question", "why_needed", "options"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "question": { "type": "string", "minLength": 1 },
+          "why_needed": { "type": "string", "minLength": 1 },
+          "options": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

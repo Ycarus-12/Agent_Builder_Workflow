@@ -14,6 +14,7 @@ import argparse
 import sys
 
 from .agents import (
+    build_manifest_schema,
     cost_deepdive_schema,
     cost_rom_schema,
     intake_record_schema,
@@ -25,6 +26,7 @@ from .agents import (
 from .config import load_gateway_config
 from .evals.runner import (
     SuiteResult,
+    run_build_suite_replay,
     run_cost_deepdive_suite_replay,
     run_cost_rom_suite_replay,
     run_intake_suite_live,
@@ -40,6 +42,7 @@ _REPLAY_SUITES = {
     "triage": lambda: run_triage_suite_replay(triage_output_schema()),
     "rom": lambda: run_cost_rom_suite_replay(cost_rom_schema()),
     "deepdive": lambda: run_cost_deepdive_suite_replay(cost_deepdive_schema()),
+    "build": lambda: run_build_suite_replay(build_manifest_schema()),
 }
 
 
@@ -63,7 +66,9 @@ def main(argv: "list[str] | None" = None) -> int:
     parser = argparse.ArgumentParser(description="Run agent eval suites.")
     parser.add_argument("--mode", choices=["replay", "live"], default="replay")
     parser.add_argument(
-        "--suite", choices=["intake", "stack-check", "triage", "rom", "deepdive", "all"], default="all"
+        "--suite",
+        choices=["intake", "stack-check", "triage", "rom", "deepdive", "build", "all"],
+        default="all",
     )
     args = parser.parse_args(argv)
 
