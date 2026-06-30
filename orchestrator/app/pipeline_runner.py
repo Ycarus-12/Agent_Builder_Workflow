@@ -62,6 +62,13 @@ _DEFAULT_GOVERNANCE_STANDARD = "(governance standard supplied by the operator at
 # persistently failing build cannot spin forever. Not a contract gate — a backstop.
 _MAX_REMEDIATION_CYCLES = 5
 
+# Structural backstop on a single advance() call: every iteration makes forward
+# progress, returns at a stop, or takes a remediation-capped backward edge, so a
+# real run takes well under this. The cap guarantees termination regardless of
+# future stage edits — it can only trip on a programming error (a stage that
+# neither advances, stops, nor terminates).
+_MAX_ADVANCE_STEPS = 100
+
 
 class PipelineError(RuntimeError):
     """Unrecoverable driver condition (e.g. remediation cap hit, missing option)."""
@@ -152,7 +159,15 @@ class PipelineRunner:
     # == the drive loop ======================================================
     def advance(self) -> PipelineStep:
         """Run automatic stages until the next stop or a terminal stage."""
+        steps = 0
         while True:
+            steps += 1
+            if steps > _MAX_ADVANCE_STEPS:
+                raise PipelineError(
+                    f"advance() exceeded {_MAX_ADVANCE_STEPS} steps without reaching a "
+                    f"stop or terminal (stuck at {self.pipeline.stage.value}) — likely a "
+                    f"non-progressing stage."
+                )
             p = self.pipeline
             if p.is_terminal:
                 return self._terminal_step()

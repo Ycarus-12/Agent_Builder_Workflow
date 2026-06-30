@@ -4,7 +4,7 @@ In-memory fakes let the whole spine run and test offline.
 """
 
 from .datastore import Datastore, InMemoryDatastore
-from .emailer import Emailer, InMemoryEmailer, SentEmail
+from .emailer import Emailer, EmailerError, InMemoryEmailer, ResendEmailer, SentEmail
 from .gateway import FakeModelGateway, ModelGateway
 from .identity import FakeIdentityProvider, IdentityProvider, RequestorIdentity
 
@@ -15,6 +15,8 @@ __all__ = [
     "InMemoryDatastore",
     "Emailer",
     "InMemoryEmailer",
+    "ResendEmailer",
+    "EmailerError",
     "SentEmail",
     "IdentityProvider",
     "FakeIdentityProvider",
