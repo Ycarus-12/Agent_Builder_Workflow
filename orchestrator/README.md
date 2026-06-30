@@ -36,8 +36,29 @@ runs and tests offline on in-memory fakes.
 cd orchestrator
 pip install -r requirements.txt
 pytest -q
-uvicorn app.api:app --reload   # optional: serve the skeleton API
+uvicorn app.api:app --reload   # the console + intake UI
 ```
+
+## Live model calls via OpenRouter (dev/test)
+
+The model seam ships two adapters: an offline fake and `OpenRouterGateway`
+(OpenRouter + your BYOK Anthropic key). Each seam picks its mode from the
+environment — `ORCHESTRATOR_MODE` is the baseline, and `GATEWAY_MODE` /
+`DATASTORE_MODE` / `EMAILER_MODE` override it per seam. So you can run **real
+model calls locally with in-memory storage/email** — no Airtable/Resend needed:
+
+```bash
+cp .env.example .env            # then edit
+export OPENROUTER_API_KEY=sk-or-...
+export GATEWAY_MODE=live         # ORCHESTRATOR_MODE stays offline
+
+python -m app.check_gateway      # one tiny real call to verify the key works
+uvicorn app.api:app --reload     # now agents run through OpenRouter
+```
+
+`check_gateway` prints the base URL, model, and the model's reply (or a clear
+error). See `.env.example` for the full variable list (models, Airtable, Resend,
+auth, notification links).
 
 ## Scope (this phase)
 

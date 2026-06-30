@@ -69,6 +69,18 @@ def current_mode() -> str:
     return os.environ.get(MODE_ENV, OFFLINE).lower()
 
 
+def _seam_mode(env_name: str, base: str) -> str:
+    """A seam runs at ORCHESTRATOR_MODE unless its own override env is set.
+
+    Lets you bring up one seam at a time — e.g. GATEWAY_MODE=live to make real
+    OpenRouter calls while datastore/email stay on the in-memory fakes locally.
+    """
+    mode = os.environ.get(env_name, base).lower()
+    if mode not in (LIVE, OFFLINE):
+        raise CompositionError(f"unknown {env_name}={mode!r}; expected 'offline' or 'live'")
+    return mode
+
+
 def default_model_map(config: GatewayConfig) -> dict[str, tuple[str, int]]:
     """Per-agent (model_id, max_tokens). Single-provider start: judgment stages get
     the frontier model, mechanical stages the smaller one (context §6)."""
@@ -118,19 +130,26 @@ def build_emailer(mode: str) -> Emailer:
 
 
 def build_services(mode: str | None = None, *, identity: IdentityProvider | None = None) -> Services:
-    """Build the wired seams for the given mode (defaults to ORCHESTRATOR_MODE)."""
-    mode = (mode or current_mode()).lower()
-    if mode not in (LIVE, OFFLINE):
-        raise CompositionError(f"unknown {MODE_ENV}={mode!r}; expected 'offline' or 'live'")
-    datastore = build_datastore(mode)
+    """Build the wired seams. ORCHESTRATOR_MODE sets the baseline; each seam may be
+    overridden via GATEWAY_MODE / DATASTORE_MODE / EMAILER_MODE (offline|live)."""
+    base = (mode or current_mode()).lower()
+    if base not in (LIVE, OFFLINE):
+        raise CompositionError(f"unknown {MODE_ENV}={base!r}; expected 'offline' or 'live'")
+    gateway_mode = _seam_mode("GATEWAY_MODE", base)
+    datastore_mode = _seam_mode("DATASTORE_MODE", base)
+    emailer_mode = _seam_mode("EMAILER_MODE", base)
+
+    datastore = build_datastore(datastore_mode)
+    # stack-check reads the registry when the gateway is live; else an empty one.
+    registry = default_registry_source() if gateway_mode == LIVE else InMemoryRegistry([])
     # The real SSO/identity provider is resolved at the web/session layer (deferred);
     # offline and un-injected live both use the fake, which the web layer replaces.
     return Services(
-        mode=mode,
-        gateway=build_gateway(mode),
+        mode=base,
+        gateway=build_gateway(gateway_mode),
         datastore=datastore,
-        emailer=build_emailer(mode),
-        registry_source=default_registry_source() if mode == LIVE else InMemoryRegistry([]),
+        emailer=build_emailer(emailer_mode),
+        registry_source=registry,
         identity=identity or FakeIdentityProvider(),
         audit=AuditLog(datastore),
     )
