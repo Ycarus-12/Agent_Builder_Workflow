@@ -90,8 +90,42 @@ class CostDeepDiveFixture:
     replay_only: bool = False
 
 
+@dataclass(frozen=True)
+class BuildFixture:
+    case_id: str
+    description: str
+    build_type: str
+    acceptance_criteria: list[str]
+    spec_context: dict
+    assertions: dict
+    expect_result: str = "pass"
+    recorded_output: str | None = None
+    replay_only: bool = False
+
+
 def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def load_build_fixtures(directory: Path | None = None) -> list[BuildFixture]:
+    directory = directory or (_FIXTURES_DIR / "build")
+    out: list[BuildFixture] = []
+    for path in sorted(directory.glob("*.yaml")):
+        d = _load_yaml(path)
+        out.append(
+            BuildFixture(
+                case_id=d["case_id"],
+                description=d.get("description", ""),
+                build_type=d.get("build_type", ""),
+                acceptance_criteria=d.get("acceptance_criteria", []),
+                spec_context=d.get("spec_context", {}),
+                assertions=d.get("assertions", {}),
+                expect_result=d.get("expect_result", "pass"),
+                recorded_output=d.get("recorded_output"),
+                replay_only=d.get("replay_only", False),
+            )
+        )
+    return out
 
 
 def load_cost_deepdive_fixtures(directory: Path | None = None) -> list[CostDeepDiveFixture]:

@@ -1,0 +1,31 @@
+case_id: B1
+agent: build-agent
+version: 1.0.0
+description: code avenue, complete; AC mapped, no self-grade, customer-data assumption
+expect_result: pass
+build_type: "code"
+acceptance_criteria:
+  - "Checklist auto-created on deal close"
+  - "Owner notified"
+spec_context:
+  data_sensitivity: "customer"
+assertions:
+  ac_coverage: true
+  no_prose_outside_json: true
+recorded_output: |
+  {
+    "request_title": "Auto-create kickoff checklist on deal close",
+    "build_type": "code",
+    "build_status": "complete",
+    "artifact": {"repo_path": "Ycarus-12/checklist-bot", "commit_hash": "a1b2c3d", "staging_ref": null, "config_guide": null},
+    "artifact_summary": "A webhook handler that creates a checklist and notifies the owner on CRM deal-close.",
+    "acceptance_criteria_map": [
+      {"criterion": "Checklist auto-created on deal close", "addressed_by": "src/handler.py:on_deal_close() creates the checklist via the work-tool API"},
+      {"criterion": "Owner notified", "addressed_by": "src/handler.py:notify_owner() posts to the owner channel"}
+    ],
+    "qa_entrypoint": {"instructions": "Send a sample deal-close webhook to the staging endpoint.", "run_command": "pytest tests/", "dependencies": ["httpx"], "environment_notes": "Set WORKTOOL_TOKEN."},
+    "verification_status": "verifiable",
+    "build_facts": ["compiles without errors", "dependencies resolved"],
+    "assumptions": ["Customer data from the CRM is read in transit and not persisted outside the work tool."],
+    "questions": []
+  }

@@ -1,0 +1,28 @@
+case_id: B4
+agent: build-agent
+version: 1.0.0
+description: config_instructions avenue; guide only, unverified-validate-on-apply, no build_facts
+expect_result: pass
+build_type: "config_instructions"
+acceptance_criteria:
+  - "Leads routed by territory"
+spec_context:
+  data_sensitivity: "internal"
+assertions:
+  ac_coverage: true
+recorded_output: |
+  {
+    "request_title": "Configure CRM territory routing",
+    "build_type": "config_instructions",
+    "build_status": "complete",
+    "artifact": {"repo_path": null, "commit_hash": null, "staging_ref": null, "config_guide": "1. Open CRM Admin > Assignment Rules. 2. Add a territory rule mapping region to rep. 3. Save and enable."},
+    "artifact_summary": "A step-by-step guide to configure rule-based territory routing in the CRM.",
+    "acceptance_criteria_map": [
+      {"criterion": "Leads routed by territory", "addressed_by": "Guide step 2 defines the territory-to-rep assignment rule"}
+    ],
+    "qa_entrypoint": {"instructions": "Follow the guide on staging, then create a test lead and confirm assignment.", "run_command": null, "dependencies": [], "environment_notes": "CRM admin access required."},
+    "verification_status": "unverified_validate_on_apply",
+    "build_facts": [],
+    "assumptions": ["The CRM plan includes rule-based assignment."],
+    "questions": []
+  }
