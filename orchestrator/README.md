@@ -69,6 +69,25 @@ Secrets** on the content's **Advanced** settings tab. Connect stores them
 encrypted and decrypts them only when the process starts, so nothing sensitive is
 ever in the deployed bundle.
 
+## Deploy to Posit Connect Cloud (Shiny)
+
+Connect Cloud's GitHub publish supports Shiny (not FastAPI), so the UI ships as two
+**Shiny for Python** apps at the repo root that reuse the orchestrator backend
+unchanged (`app.shiny_logic`). Publish them as **two separate contents**:
+
+| Content | Primary file | Access | Audience |
+|---|---|---|---|
+| Intake | `intake_app.py` | **Public** | Guests log requests (no login) |
+| Console | `console_app.py` | **Restricted to you** | AI Enabler — Connect handles the login |
+
+For each: Publish → From GitHub → **Shiny** → repo `Ycarus-12/Agent_Builder_Workflow`,
+branch `main`, primary file as above, Python 3.11. Set the same env vars (Advanced
+tab) on **both** so they share one backend — at minimum `ORCHESTRATOR_MODE`/
+`GATEWAY_MODE=live` + `OPENROUTER_API_KEY`, and `DATASTORE_MODE=live` + Airtable
+(so both contents see the same requests). Theming comes from `_brand.yml` (Posit
+Design System). The local FastAPI app under `orchestrator/app` stays for dev/tests;
+`shiny run intake_app.py` runs an app locally.
+
 ## Scope (this phase)
 
 In: the deterministic core + seams-as-fakes + unit tests + a fake end-to-end
