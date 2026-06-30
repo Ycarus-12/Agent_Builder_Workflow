@@ -1,0 +1,17 @@
+case_id: SG_neg_sensitivity
+agent: security-governance
+version: 1.0.0
+description: NEGATIVE — applied_sensitivity downgrades regulated to internal
+expect_result: fail
+replay_only: true
+data_sensitivity: "regulated"
+assertions:
+  applied_sensitivity_correct: true
+recorded_output: |
+  {
+    "request_title": "Complaint triage",
+    "build_type": "code",
+    "applied_sensitivity": "internal",
+    "findings": [],
+    "human_summary": "Downgraded incorrectly."
+  }

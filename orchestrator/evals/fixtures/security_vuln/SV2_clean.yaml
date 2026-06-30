@@ -1,0 +1,13 @@
+case_id: SV2
+agent: security-vulnerabilities
+version: 1.0.0
+description: no contextual findings beyond scanner coverage
+expect_result: pass
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Static config change",
+    "build_type": "config_applied",
+    "findings": [],
+    "human_summary": "No contextual vulnerabilities beyond what the scanners already cover."
+  }

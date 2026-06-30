@@ -1,0 +1,15 @@
+case_id: SV_neg_verdict
+agent: security-vulnerabilities
+version: 1.0.0
+description: NEGATIVE — output emits a block determination (agent must not)
+expect_result: fail
+replay_only: true
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Handler",
+    "build_type": "code",
+    "findings": [],
+    "human_summary": "Clean.",
+    "block": "none"
+  }

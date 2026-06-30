@@ -1,0 +1,16 @@
+case_id: SV1
+agent: security-vulnerabilities
+version: 1.0.0
+description: contextual findings; sequential SEC-V ids; no verdict field
+expect_result: pass
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Checklist webhook handler",
+    "build_type": "code",
+    "findings": [
+      {"finding_id": "SEC-V-001", "severity": "High", "category": "Injection", "description": "Deal payload fields are interpolated into the work-tool API call without escaping at handler.py:42.", "location": "src/handler.py:42", "recommendation": "Use parameterized API calls.", "scanner_covered": false},
+      {"finding_id": "SEC-V-002", "severity": "Low", "category": "Logging", "description": "Full deal payloads are logged at debug and may include customer fields.", "location": "src/handler.py:88", "recommendation": "Redact customer fields before logging.", "scanner_covered": true}
+    ],
+    "human_summary": "One high-severity injection risk the scanner missed and one low logging concern; details inline."
+  }

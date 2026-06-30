@@ -1,0 +1,15 @@
+case_id: SG2
+agent: security-governance
+version: 1.0.0
+description: unspecified data_sensitivity maps to customer (sensitive-until-confirmed)
+expect_result: pass
+data_sensitivity: "unspecified"
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Report generator",
+    "build_type": "code",
+    "applied_sensitivity": "customer",
+    "findings": [],
+    "human_summary": "Sensitivity was unspecified; treated as customer for guardrails. No governance findings."
+  }

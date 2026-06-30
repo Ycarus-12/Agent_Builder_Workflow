@@ -116,8 +116,47 @@ class QaFixture:
     replay_only: bool = False
 
 
+@dataclass(frozen=True)
+class SecurityFixture:
+    case_id: str
+    description: str
+    kind: str            # "vuln" | "gov"
+    assertions: dict
+    data_sensitivity: str | None = None   # governance only
+    expect_result: str = "pass"
+    recorded_output: str | None = None
+    replay_only: bool = False
+
+
 def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def _load_security_fixtures(directory: Path, kind: str) -> list[SecurityFixture]:
+    out: list[SecurityFixture] = []
+    for path in sorted(directory.glob("*.yaml")):
+        d = _load_yaml(path)
+        out.append(
+            SecurityFixture(
+                case_id=d["case_id"],
+                description=d.get("description", ""),
+                kind=kind,
+                assertions=d.get("assertions", {}),
+                data_sensitivity=d.get("data_sensitivity"),
+                expect_result=d.get("expect_result", "pass"),
+                recorded_output=d.get("recorded_output"),
+                replay_only=d.get("replay_only", False),
+            )
+        )
+    return out
+
+
+def load_security_vuln_fixtures(directory: Path | None = None) -> list[SecurityFixture]:
+    return _load_security_fixtures(directory or (_FIXTURES_DIR / "security_vuln"), "vuln")
+
+
+def load_security_gov_fixtures(directory: Path | None = None) -> list[SecurityFixture]:
+    return _load_security_fixtures(directory or (_FIXTURES_DIR / "security_gov"), "gov")
 
 
 def load_qa_fixtures(directory: Path | None = None) -> list[QaFixture]:

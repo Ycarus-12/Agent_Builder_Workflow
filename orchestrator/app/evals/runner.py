@@ -18,17 +18,21 @@ from .loader import (
     StackCheckFixture,
     TriageFixture,
     QaFixture,
+    SecurityFixture,
     load_build_fixtures,
     load_conversation_fixtures,
     load_cost_deepdive_fixtures,
     load_cost_rom_fixtures,
     load_extraction_fixtures,
     load_qa_fixtures,
+    load_security_gov_fixtures,
+    load_security_vuln_fixtures,
     load_stack_check_fixtures,
     load_triage_fixtures,
 )
 from .build_assertions import check_build
 from .qa_assertions import check_qa
+from .security_assertions import check_security
 from .deepdive_assertions import check_deepdive
 from .rom_assertions import check_rom
 from .stack_check_assertions import check_stack_check
@@ -155,6 +159,21 @@ def run_cost_rom_replay(fixtures: list[CostRomFixture], schema: dict) -> list[Ca
 def run_cost_rom_suite_replay(schema: dict) -> SuiteResult:
     suite = SuiteResult()
     suite.cases += run_cost_rom_replay(load_cost_rom_fixtures(), schema)
+    return suite
+
+
+def run_security_suite_replay(vuln_schema: dict, gov_schema: dict) -> SuiteResult:
+    suite = SuiteResult()
+    for fx in load_security_vuln_fixtures():
+        if fx.recorded_output is None:
+            suite.cases.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        suite.cases.append(_apply_expect(fx, check_security(fx, fx.recorded_output, vuln_schema)))
+    for fx in load_security_gov_fixtures():
+        if fx.recorded_output is None:
+            suite.cases.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        suite.cases.append(_apply_expect(fx, check_security(fx, fx.recorded_output, gov_schema)))
     return suite
 
 

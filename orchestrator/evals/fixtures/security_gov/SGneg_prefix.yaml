@@ -1,0 +1,18 @@
+case_id: SG_neg_prefix
+agent: security-governance
+version: 1.0.0
+description: NEGATIVE — governance finding uses the vulnerability prefix
+expect_result: fail
+replay_only: true
+data_sensitivity: "customer"
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Handler",
+    "build_type": "code",
+    "applied_sensitivity": "customer",
+    "findings": [
+      {"finding_id": "SEC-V-001", "severity": "Low", "category": "Access scope", "description": "x", "location": "a:1", "governance_reference": "std", "recommendation": "fix", "scanner_covered": false}
+    ],
+    "human_summary": "Wrong prefix."
+  }
