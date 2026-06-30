@@ -1,0 +1,44 @@
+case_id: S_neg_invented
+agent: stack-check
+version: 1.0.0
+description: NEGATIVE — output invents a match not in the registry_mock
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Auto-create checklist on deal close"
+  data_sensitivity: "customer"
+  systems_involved: ["CRM"]
+registry_mock:
+  response:
+    - record_id: "wmt-001"
+      record_name: "Work-Management Tool"
+      capability_id: "wmt-001-c02"
+      capability_statement: "Trigger checklist creation from deal-close events"
+      support: "native"
+      data_sensitivity_clearance: "customer"
+assertions:
+  schema_valid: true
+recorded_output: |
+  {
+    "request_title": "Auto-create checklist on deal close",
+    "matches": [
+      {
+        "record_id": "wmt-001", "record_name": "Work-Management Tool",
+        "capability_id": "wmt-001-c02",
+        "capability_statement": "Trigger checklist creation from deal-close events",
+        "support": "native", "data_sensitivity_clearance": "customer",
+        "relevance_note": "Direct match."
+      },
+      {
+        "record_id": "ghost-999", "record_name": "Imaginary Tool",
+        "capability_id": "ghost-999-c01",
+        "capability_statement": "Does the whole thing magically",
+        "support": "native", "data_sensitivity_clearance": "regulated",
+        "relevance_note": "Invented; not returned by the registry."
+      }
+    ],
+    "no_existing_coverage": false,
+    "registry_confidence": "high",
+    "finding_summary": "Two matches found.",
+    "systems_searched": ["CRM"]
+  }

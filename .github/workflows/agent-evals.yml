@@ -1,0 +1,43 @@
+name: agent-evals
+
+# The merge gate (contract §7.3): the deterministic eval harness in REPLAY mode
+# across every wired agent suite (intake, stack-check, triage). Extraction/finding
+# assertions + conversation hard-fails + triage cross-field checks against
+# recorded/golden fixtures, with negative fixtures proving the gate bites. Runs
+# every commit; no model needed. Live model evals are key-gated (see *-live.yml).
+
+on:
+  push:
+    paths:
+      - "orchestrator/**"
+      - "agents/intake-conversation_v1_0.md"
+      - "agents/intake-extraction_v1_0.md"
+      - "agents/stack-check_v1_0.md"
+      - "agents/triage-recommender_v1_0.md"
+      - "evals/**"
+      - ".github/workflows/agent-evals.yml"
+  pull_request:
+    paths:
+      - "orchestrator/**"
+      - "agents/intake-conversation_v1_0.md"
+      - "agents/intake-extraction_v1_0.md"
+      - "agents/stack-check_v1_0.md"
+      - "agents/triage-recommender_v1_0.md"
+      - "evals/**"
+      - ".github/workflows/agent-evals.yml"
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run agent evals (replay, all suites)
+        run: python -m app.run_evals --mode replay --suite all

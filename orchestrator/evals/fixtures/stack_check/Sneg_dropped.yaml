@@ -1,0 +1,44 @@
+case_id: S_neg_dropped
+agent: stack-check
+version: 1.0.0
+description: NEGATIVE — a mock match is silently dropped from the output
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Lead routing"
+  data_sensitivity: "internal"
+  systems_involved: ["CRM"]
+registry_mock:
+  response:
+    - record_id: "crm-002"
+      record_name: "CRM Platform"
+      capability_id: "crm-002-c07"
+      capability_statement: "Rule-based lead assignment by territory"
+      support: "configurable"
+      data_sensitivity_clearance: "customer"
+    - record_id: "crm-002"
+      record_name: "CRM Platform"
+      capability_id: "crm-002-c08"
+      capability_statement: "Round-robin lead assignment"
+      support: "configurable"
+      data_sensitivity_clearance: "customer"
+assertions:
+  schema_valid: true
+  all_mock_matches_present: true
+recorded_output: |
+  {
+    "request_title": "Lead routing",
+    "matches": [
+      {
+        "record_id": "crm-002", "record_name": "CRM Platform",
+        "capability_id": "crm-002-c07",
+        "capability_statement": "Rule-based lead assignment by territory",
+        "support": "configurable", "data_sensitivity_clearance": "customer",
+        "relevance_note": "Matches."
+      }
+    ],
+    "no_existing_coverage": false,
+    "registry_confidence": "high",
+    "finding_summary": "One match found.",
+    "systems_searched": ["CRM"]
+  }

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TriageOptionListAndRecommendation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_title", "options", "recommendation", "sensitivity_overlay", "uncertainty", "cascade_trace"],
+  "properties": {
+    "request_title": { "type": "string", "minLength": 1 },
+    "options": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["option_id", "route", "label", "summary", "tool_name", "capability_id", "avenue", "engine", "weight", "vendor_or_category", "bought_capability"],
+        "properties": {
+          "option_id": { "type": "string", "minLength": 1 },
+          "route": { "type": "string", "enum": ["configure", "build", "buy"] },
+          "label": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string", "minLength": 1 },
+          "tool_name": { "type": ["string", "null"] },
+          "capability_id": { "type": ["string", "null"] },
+          "avenue": { "type": ["string", "null"], "enum": ["code", "agent_creation", "config_applied", "config_instructions", null] },
+          "engine": { "type": ["string", "null"], "enum": ["ai", "deterministic", null] },
+          "weight": { "type": ["string", "null"], "enum": ["light", "heavy", null] },
+          "vendor_or_category": { "type": ["string", "null"] },
+          "bought_capability": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "recommended_option_id", "rationale", "risks", "destination_team", "alternatives"],
+      "properties": {
+        "outcome": { "type": "string", "enum": ["route_elsewhere", "dont_build", "configure", "process_training_fix", "buy", "build"] },
+        "recommended_option_id": { "type": ["string", "null"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "destination_team": { "type": ["string", "null"] },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["option_id", "why_secondary"],
+            "properties": {
+              "option_id": { "type": "string", "minLength": 1 },
+              "why_secondary": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "sensitivity_overlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effective_sensitivity", "guardrail_note"],
+      "properties": {
+        "effective_sensitivity": { "type": "string", "enum": ["none", "internal", "customer", "financial", "regulated", "unspecified"] },
+        "guardrail_note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "uncertainty": { "type": "string", "minLength": 1 },
+    "cascade_trace": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate", "resolved", "reasoning"],
+        "properties": {
+          "gate": { "type": "string" },
+          "resolved": { "type": "boolean" },
+          "reasoning": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

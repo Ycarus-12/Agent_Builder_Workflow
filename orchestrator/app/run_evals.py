@@ -17,18 +17,28 @@ from .agents import (
     intake_record_schema,
     load_intake_conversation_spec,
     load_intake_extraction_spec,
+    stack_check_finding_schema,
+    triage_output_schema,
 )
 from .config import load_gateway_config
 from .evals.runner import (
     SuiteResult,
     run_intake_suite_live,
     run_intake_suite_replay,
+    run_stack_check_suite_replay,
+    run_triage_suite_replay,
 )
 from .ports.gateway import OpenRouterGateway
 
+_REPLAY_SUITES = {
+    "intake": lambda: run_intake_suite_replay(intake_record_schema()),
+    "stack-check": lambda: run_stack_check_suite_replay(stack_check_finding_schema()),
+    "triage": lambda: run_triage_suite_replay(triage_output_schema()),
+}
 
-def _report(suite: SuiteResult, mode: str) -> int:
-    print(f"intake-evals ({mode} mode): {len(suite.cases)} case(s)")
+
+def _report(label: str, suite: SuiteResult, mode: str) -> int:
+    print(f"{label} ({mode} mode): {len(suite.cases)} case(s)")
     for case in suite.cases:
         status = "PASS" if case.passed else "FAIL"
         print(f"  [{status}] {case.case_id}")
@@ -37,22 +47,31 @@ def _report(suite: SuiteResult, mode: str) -> int:
         for soft in case.soft_signals:
             print(f"      ~ soft: {soft}")
     if suite.ok:
-        print(f"intake-evals: PASS ({len(suite.cases)} case(s))")
+        print(f"{label}: PASS ({len(suite.cases)} case(s))")
         return 0
-    print(f"intake-evals: FAIL ({len(suite.failed)}/{len(suite.cases)} case(s) failed)")
+    print(f"{label}: FAIL ({len(suite.failed)}/{len(suite.cases)} case(s) failed)")
     return 1
 
 
 def main(argv: "list[str] | None" = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the intake eval suite.")
+    parser = argparse.ArgumentParser(description="Run agent eval suites.")
     parser.add_argument("--mode", choices=["replay", "live"], default="replay")
+    parser.add_argument(
+        "--suite", choices=["intake", "stack-check", "triage", "all"], default="all"
+    )
     args = parser.parse_args(argv)
 
-    schema = intake_record_schema()
-
     if args.mode == "replay":
-        return _report(run_intake_suite_replay(schema), "replay")
+        suites = list(_REPLAY_SUITES) if args.suite == "all" else [args.suite]
+        rc = 0
+        for name in suites:
+            rc |= _report(f"{name}-evals", _REPLAY_SUITES[name](), "replay")
+        return rc
 
+    # Live mode: intake is wired; stack-check/triage live runners are a follow-up.
+    if args.suite not in ("intake", "all"):
+        print(f"{args.suite}-evals (live mode): not yet wired — replay is the active gate.")
+        return 0
     config = load_gateway_config()
     if not config.has_key:
         print("intake-evals (live mode): skipped — OPENROUTER_API_KEY not set.")
@@ -63,9 +82,9 @@ def main(argv: "list[str] | None" = None) -> int:
     }
     gateway = OpenRouterGateway(config, models)
     suite = run_intake_suite_live(
-        schema, gateway, load_intake_conversation_spec(), load_intake_extraction_spec()
+        intake_record_schema(), gateway, load_intake_conversation_spec(), load_intake_extraction_spec()
     )
-    return _report(suite, "live")
+    return _report("intake-evals", suite, "live")
 
 
 if __name__ == "__main__":  # pragma: no cover

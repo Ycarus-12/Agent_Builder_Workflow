@@ -1,0 +1,42 @@
+case_id: T6
+agent: triage-recommender
+version: 1.1.0
+description: Regulated complaint triage; no coverage; recommend a heavy build
+expect_result: pass
+intake_record:
+  request_title: "Triage regulated complaints"
+  data_sensitivity: "regulated"
+transcript: "Requestor: classify and route regulated complaints."
+stack_check_result:
+  matches: []
+  registry_confidence: "high"
+  no_existing_coverage: true
+assertions:
+  expected_outcome: "build"
+recorded_output: |
+  {
+    "request_title": "Triage regulated complaints",
+    "options": [
+      {"option_id": "opt_001", "route": "build", "label": "Complaint classifier agent",
+       "summary": "An AI classifier that triages and routes regulated complaints.",
+       "tool_name": null, "capability_id": null, "avenue": "code",
+       "engine": "ai", "weight": "heavy", "vendor_or_category": null, "bought_capability": null}
+    ],
+    "recommendation": {
+      "outcome": "build", "recommended_option_id": "opt_001",
+      "rationale": "No existing coverage; the classification needs judgment, so a built AI agent fits.",
+      "risks": ["Regulated data requires the R&D security sign-off."],
+      "destination_team": null, "alternatives": []
+    },
+    "sensitivity_overlay": {"effective_sensitivity": "regulated",
+      "guardrail_note": "Regulated data raises guardrails: full security review plus R&D sign-off. The route is unchanged."},
+    "uncertainty": "Medium; scope of complaint categories is not fully known.",
+    "cascade_trace": [
+      {"gate": "Belongs to another function?", "resolved": false, "reasoning": "Owned by the team."},
+      {"gate": "Worth solving?", "resolved": false, "reasoning": "High volume, clearly worth solving."},
+      {"gate": "Does a tool we own fit?", "resolved": false, "reasoning": "Registry returned no match."},
+      {"gate": "Process or training gap?", "resolved": false, "reasoning": "Not a training issue."},
+      {"gate": "Does buying beat building?", "resolved": false, "reasoning": "No commodity product fits the regulated workflow."},
+      {"gate": "Otherwise build", "resolved": true, "reasoning": "Build a regulated-grade classifier agent."}
+    ]
+  }

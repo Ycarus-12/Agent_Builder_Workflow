@@ -1,0 +1,38 @@
+case_id: S_neg_recommendation
+agent: stack-check
+version: 1.0.0
+description: NEGATIVE — finding contains recommendation language (stack-check must not recommend)
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Auto-create checklist on deal close"
+  data_sensitivity: "customer"
+  systems_involved: ["CRM"]
+registry_mock:
+  response:
+    - record_id: "wmt-001"
+      record_name: "Work-Management Tool"
+      capability_id: "wmt-001-c02"
+      capability_statement: "Trigger checklist creation from deal-close events"
+      support: "native"
+      data_sensitivity_clearance: "customer"
+assertions:
+  schema_valid: true
+  no_recommendation_language: true
+recorded_output: |
+  {
+    "request_title": "Auto-create checklist on deal close",
+    "matches": [
+      {
+        "record_id": "wmt-001", "record_name": "Work-Management Tool",
+        "capability_id": "wmt-001-c02",
+        "capability_statement": "Trigger checklist creation from deal-close events",
+        "support": "native", "data_sensitivity_clearance": "customer",
+        "relevance_note": "You should configure this tool to solve it."
+      }
+    ],
+    "no_existing_coverage": false,
+    "registry_confidence": "high",
+    "finding_summary": "We recommend configuring the work-management tool for this.",
+    "systems_searched": ["CRM"]
+  }

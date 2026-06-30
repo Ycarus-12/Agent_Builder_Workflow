@@ -12,9 +12,15 @@ from .assertions import CaseResult, check_conversation, check_extraction
 from .loader import (
     ConversationFixture,
     ExtractionFixture,
+    StackCheckFixture,
+    TriageFixture,
     load_conversation_fixtures,
     load_extraction_fixtures,
+    load_stack_check_fixtures,
+    load_triage_fixtures,
 )
+from .stack_check_assertions import check_stack_check
+from .triage_assertions import check_triage
 
 
 @dataclass
@@ -30,7 +36,7 @@ class SuiteResult:
         return not self.failed
 
 
-def _apply_expect(fixture: ExtractionFixture, result: CaseResult) -> CaseResult:
+def _apply_expect(fixture, result: CaseResult) -> CaseResult:
     """Negative fixtures (expect_result='fail') must be REJECTED by the engine; if
     they pass clean, the gate failed to bite."""
     if fixture.expect_result == "fail":
@@ -94,11 +100,45 @@ def run_conversation_live(
     return results
 
 
+# -- stack-check ------------------------------------------------------------
+def run_stack_check_replay(fixtures: list[StackCheckFixture], schema: dict) -> list[CaseResult]:
+    results = []
+    for fx in fixtures:
+        if fx.recorded_output is None:
+            results.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        results.append(_apply_expect(fx, check_stack_check(fx, fx.recorded_output, schema)))
+    return results
+
+
+# -- triage -----------------------------------------------------------------
+def run_triage_replay(fixtures: list[TriageFixture], schema: dict) -> list[CaseResult]:
+    results = []
+    for fx in fixtures:
+        if fx.recorded_output is None:
+            results.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        results.append(_apply_expect(fx, check_triage(fx, fx.recorded_output, schema)))
+    return results
+
+
 # -- top level --------------------------------------------------------------
 def run_intake_suite_replay(schema: dict) -> SuiteResult:
     suite = SuiteResult()
     suite.cases += run_extraction_replay(load_extraction_fixtures(), schema)
     suite.cases += run_conversation_replay(load_conversation_fixtures())
+    return suite
+
+
+def run_stack_check_suite_replay(schema: dict) -> SuiteResult:
+    suite = SuiteResult()
+    suite.cases += run_stack_check_replay(load_stack_check_fixtures(), schema)
+    return suite
+
+
+def run_triage_suite_replay(schema: dict) -> SuiteResult:
+    suite = SuiteResult()
+    suite.cases += run_triage_replay(load_triage_fixtures(), schema)
     return suite
 
 

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StackCheckFinding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_title", "matches", "no_existing_coverage",
+    "registry_confidence", "finding_summary", "systems_searched"
+  ],
+  "properties": {
+    "request_title": { "type": "string", "minLength": 1 },
+    "matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_id", "record_name", "capability_id", "capability_statement",
+          "support", "data_sensitivity_clearance", "relevance_note"
+        ],
+        "properties": {
+          "record_id":                  { "type": "string" },
+          "record_name":                { "type": "string" },
+          "capability_id":              { "type": "string" },
+          "capability_statement":       { "type": "string" },
+          "support": {
+            "type": "string",
+            "enum": ["native", "configurable", "not_supported"]
+          },
+          "data_sensitivity_clearance": { "type": "string" },
+          "relevance_note":             { "type": "string" }
+        }
+      }
+    },
+    "no_existing_coverage": { "type": "boolean" },
+    "registry_confidence": {
+      "type": "string",
+      "enum": ["high", "low", "empty"]
+    },
+    "finding_summary":  { "type": "string", "minLength": 1 },
+    "systems_searched": { "type": "array", "items": { "type": "string" } }
+  }
+}

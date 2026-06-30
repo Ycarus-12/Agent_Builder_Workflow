@@ -1,0 +1,30 @@
+case_id: S3
+agent: stack-check
+version: 1.0.0
+description: Empty registry result; honest no-coverage finding
+expect_result: pass
+intake_record:
+  request_title: "Triage regulated complaints"
+  problem_outcome: "Classify and route regulated customer complaints."
+  systems_involved: ["complaints inbox"]
+  data_sensitivity: "regulated"
+registry_mock:
+  response: []
+assertions:
+  schema_valid: true
+  no_prose_outside_json: true
+  no_existing_coverage: true
+  registry_confidence: "empty"
+  all_mock_matches_present: true
+  matches_length: 0
+  sensitivity_floor_applied: "regulated"
+  no_recommendation_language: true
+recorded_output: |
+  {
+    "request_title": "Triage regulated complaints",
+    "matches": [],
+    "no_existing_coverage": true,
+    "registry_confidence": "empty",
+    "finding_summary": "The registry returned no matches for this query. With a young registry this reflects a low or absent recorded capability, not a confirmed absence of coverage.",
+    "systems_searched": ["complaints inbox"]
+  }

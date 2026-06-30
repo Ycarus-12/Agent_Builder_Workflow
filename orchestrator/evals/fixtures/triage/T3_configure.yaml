@@ -1,0 +1,49 @@
+case_id: T3
+agent: triage-recommender
+version: 1.1.0
+description: Lead routing; a configurable match exists; recommend configure
+expect_result: pass
+intake_record:
+  request_title: "Route inbound leads to the right rep"
+  data_sensitivity: "internal"
+transcript: "Requestor: new leads should go to the right rep by territory."
+stack_check_result:
+  matches:
+    - record_id: "crm-002"
+      capability_id: "crm-002-c07"
+      support: "configurable"
+      data_sensitivity_clearance: "customer"
+  registry_confidence: "high"
+  no_existing_coverage: false
+assertions:
+  expected_outcome: "configure"
+recorded_output: |
+  {
+    "request_title": "Route inbound leads to the right rep",
+    "options": [
+      {"option_id": "opt_001", "route": "configure", "label": "Configure CRM territory routing",
+       "summary": "Use the CRM's rule-based lead assignment to route by territory.",
+       "tool_name": "CRM Platform", "capability_id": "crm-002-c07", "avenue": null,
+       "engine": null, "weight": null, "vendor_or_category": null, "bought_capability": null},
+      {"option_id": "opt_002", "route": "build", "label": "Custom routing service",
+       "summary": "Build a small routing service if configuration proves too limited.",
+       "tool_name": null, "capability_id": null, "avenue": "code",
+       "engine": "deterministic", "weight": "light", "vendor_or_category": null,
+       "bought_capability": null}
+    ],
+    "recommendation": {
+      "outcome": "configure", "recommended_option_id": "opt_001",
+      "rationale": "The CRM already supports rule-based territory routing; configuration covers the need.",
+      "risks": ["Territory rules may need maintenance as regions change."],
+      "destination_team": null,
+      "alternatives": [{"option_id": "opt_002", "why_secondary": "Only needed if configuration cannot express the rules."}]
+    },
+    "sensitivity_overlay": {"effective_sensitivity": "internal",
+      "guardrail_note": "Internal data; standard handling. Sensitivity does not change the route."},
+    "uncertainty": "Low.",
+    "cascade_trace": [
+      {"gate": "Belongs to another function?", "resolved": false, "reasoning": "Owned by the team."},
+      {"gate": "Worth solving?", "resolved": false, "reasoning": "Recurring and worth automating."},
+      {"gate": "Does a tool we own fit?", "resolved": true, "reasoning": "CRM supports configurable territory routing."}
+    ]
+  }
