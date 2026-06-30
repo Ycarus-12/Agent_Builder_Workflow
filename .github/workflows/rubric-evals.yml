@@ -1,0 +1,29 @@
+name: rubric-evals
+
+# Judge-model rubric runs (contract §7.2): the 1-5 quality layer, scored by a grader
+# model (median of 3 runs). Out of scope for every-commit CI — runs weekly and on
+# demand, and needs the OPENROUTER_API_KEY secret. The judge smokes skip cleanly
+# when the key is absent, so this is safe before you add it.
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 7 * * 1"   # weekly, Monday 07:00 UTC
+
+jobs:
+  rubric:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: orchestrator
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run rubric judge (key-gated; skips without a key)
+        run: pytest tests/test_rubric_judge_smoke.py -q
