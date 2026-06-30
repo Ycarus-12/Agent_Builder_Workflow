@@ -11,10 +11,12 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from .console import router as console_router
+from .intake_console import router as intake_router
 from .state_machine import DIRECTOR_GATES, Stage
 
 app = FastAPI(title="Tool-Request Orchestrator", version="0.1.0")
 app.include_router(console_router)
+app.include_router(intake_router)
 
 
 @app.get("/health")

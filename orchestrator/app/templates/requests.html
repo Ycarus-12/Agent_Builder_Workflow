@@ -1,21 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Requests · Tool-Request Console{% endblock %}
+{% block crumb %}{% endblock %}
 {% block content %}
 <h1>In-flight requests</h1>
+<p class="meta">Requests awaiting a decision are highlighted. <a href="/intake">Start a new request &rarr;</a></p>
+<div class="card">
 {% if not summaries %}
-  <p class="muted">No requests yet.</p>
+  <p class="muted">No requests yet. <a href="/intake">Start one.</a></p>
 {% else %}
 <table>
   <thead><tr><th>Request</th><th>Stage</th><th>Status</th></tr></thead>
   <tbody>
   {% for s in summaries %}
     <tr>
-      <td><a href="/requests/{{ s.request_id }}">{{ s.request_title }}</a><br><span class="muted">{{ s.request_id }}</span></td>
-      <td>{{ s.stage }}</td>
+      <td><a href="/requests/{{ s.request_id }}">{{ s.request_title }}</a><div class="meta">{{ s.request_id }}</div></td>
+      <td class="meta">{{ s.stage }}</td>
       <td><span class="pill {{ s.status }}">{{ s.status.replace('_', ' ') }}</span></td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
 {% endif %}
+</div>
 {% endblock %}
