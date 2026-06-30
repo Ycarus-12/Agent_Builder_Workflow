@@ -51,3 +51,74 @@ def load_gateway_config() -> GatewayConfig:
         http_referer=os.environ.get("OPENROUTER_HTTP_REFERER"),
         app_title=os.environ.get("OPENROUTER_APP_TITLE", "tool-request-orchestrator"),
     )
+
+
+# Resend is the outbound-email provider (CLAUDE.md tool decisions). Key + sender
+# come from the environment / Connect managed variables — never code.
+DEFAULT_RESEND_BASE_URL = "https://api.resend.com"
+
+
+@dataclass(frozen=True)
+class EmailerConfig:
+    base_url: str
+    api_key: str | None
+    from_address: str | None
+
+    @property
+    def has_key(self) -> bool:
+        return bool(self.api_key)
+
+
+def load_emailer_config() -> EmailerConfig:
+    """Build the emailer config from the environment.
+
+    Like the gateway key, `RESEND_API_KEY` is read but never required at import
+    time — the spine and its tests run on the in-memory fake; only a live send
+    needs it.
+    """
+    return EmailerConfig(
+        base_url=os.environ.get("RESEND_BASE_URL", DEFAULT_RESEND_BASE_URL),
+        api_key=os.environ.get("RESEND_API_KEY"),
+        from_address=os.environ.get("RESEND_FROM"),
+    )
+
+
+# Airtable is the operational datastore (CLAUDE.md tool decisions; role confirmed
+# by the Director): request records, pipeline state, gate decisions, audit log.
+# NOT the capability registry (that stays GitHub-YAML). Key + base id from env.
+DEFAULT_AIRTABLE_BASE_URL = "https://api.airtable.com"
+
+
+@dataclass(frozen=True)
+class AirtableConfig:
+    base_url: str
+    api_key: str | None
+    base_id: str | None
+    # Table names are configurable so the same code binds to whatever base the
+    # operator provisions.
+    table_transcripts: str
+    table_records: str
+    table_state: str
+    table_events: str
+
+    @property
+    def is_configured(self) -> bool:
+        return bool(self.api_key and self.base_id)
+
+
+def load_airtable_config() -> AirtableConfig:
+    """Build the Airtable config from the environment.
+
+    Like the gateway/emailer, `AIRTABLE_API_KEY`/`AIRTABLE_BASE_ID` are read but
+    never required at import time — the spine and its tests run on the in-memory
+    fake; only live persistence needs them.
+    """
+    return AirtableConfig(
+        base_url=os.environ.get("AIRTABLE_BASE_URL", DEFAULT_AIRTABLE_BASE_URL),
+        api_key=os.environ.get("AIRTABLE_API_KEY"),
+        base_id=os.environ.get("AIRTABLE_BASE_ID"),
+        table_transcripts=os.environ.get("AIRTABLE_TABLE_TRANSCRIPTS", "Transcripts"),
+        table_records=os.environ.get("AIRTABLE_TABLE_RECORDS", "Records"),
+        table_state=os.environ.get("AIRTABLE_TABLE_STATE", "State"),
+        table_events=os.environ.get("AIRTABLE_TABLE_EVENTS", "Events"),
+    )
