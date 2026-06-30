@@ -1,0 +1,13 @@
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Local env / secrets (never commit real values)
+.env
+.env.*
+!.env.example
+
+# Tooling caches
+.pytest_cache/
+.venv/
