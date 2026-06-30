@@ -70,6 +70,10 @@ class Pipeline:
     selected_options: tuple[str, ...] = ()
     weight: Weight = Weight.LIGHT
     data_sensitivity: DataSensitivity = DataSensitivity.UNSPECIFIED
+    # Build clarification loop (orchestrator-contract §3, build-agent v1.0.0 changelog):
+    # build may return needs_input; the request pauses in BUILD for the Director's answers.
+    awaiting_build_input: bool = False
+    pending_build_questions: tuple[str, ...] = ()
     history: list[str] = field(default_factory=list)
 
     # -- helpers ----------------------------------------------------------
@@ -161,8 +165,36 @@ class Pipeline:
         self._go(Stage.BUILD if approved else Stage.TERMINATED)
 
     # -- build / QA / security / accept ----------------------------------
+    def build_needs_input(self, question_ids: tuple[str, ...]) -> None:
+        """Build returned build_status=needs_input: pause in BUILD for the Director.
+
+        Routes the agent's questions to the Director; the request does not advance.
+        On answers, the orchestrator re-invokes build via build_provide_responses().
+        """
+        self._require(Stage.BUILD)
+        if not question_ids:
+            raise IllegalTransition("needs_input requires at least one question")
+        self.awaiting_build_input = True
+        self.pending_build_questions = tuple(question_ids)
+        self.history.append(f"{Stage.BUILD.value}:needs_input")
+
+    def build_provide_responses(self) -> None:
+        """Director answered: clear the pending questions and re-invoke build."""
+        self._require(Stage.BUILD)
+        if not self.awaiting_build_input:
+            raise IllegalTransition("no pending build questions to answer")
+        self.awaiting_build_input = False
+        self.pending_build_questions = ()
+        self.history.append(f"{Stage.BUILD.value}:resume")
+
+    @property
+    def is_awaiting_build_input(self) -> bool:
+        return self.stage is Stage.BUILD and self.awaiting_build_input
+
     def build_complete(self) -> None:
         self._require(Stage.BUILD)
+        if self.awaiting_build_input:
+            raise IllegalTransition("build cannot complete while awaiting Director input")
         self._go(Stage.QA_FUNCTIONAL)
 
     def apply_qa(self, *, passed: bool) -> None:
@@ -191,6 +223,27 @@ class Pipeline:
             raise IllegalTransition(
                 "security_review requires the R&D security sign-off (heavy/sensitive)"
             )
+        self._go(Stage.GATE_2)
+
+    def apply_reconciled_security(
+        self, outcome, *, rnd_signed_off: bool = False, director_cleared: bool = False
+    ) -> None:
+        """Apply the orchestrator-reconciled outcome of the two blind security agents.
+
+        Precedence (security is non-bypassable, including by the Director):
+        1. A Critical finding blocks unconditionally -> back to build for remediation.
+        2. A High finding / material disagreement awaits Director adjudication.
+        3. Heavy or sensitive work awaits the R&D security sign-off.
+        Only when none of these hold does the request clear to gate_2.
+        """
+        self._require(Stage.SECURITY_REVIEW)
+        if outcome.blocked:
+            self._go(Stage.BUILD)
+            return
+        if outcome.to_director and not director_cleared:
+            raise IllegalTransition("security_review awaits Director adjudication (High/disagreement)")
+        if outcome.rnd_signoff_required and not rnd_signed_off:
+            raise IllegalTransition("security_review requires the R&D security sign-off (heavy/sensitive)")
         self._go(Stage.GATE_2)
 
     def apply_gate_2(self, *, accepted: bool) -> None:
