@@ -1,0 +1,24 @@
+case_id: P2
+agent: portfolio-pattern
+version: 1.0.0
+description: Owned-tool coverage, count 6 -> enablement, cite the record
+expect_result: pass
+clusters:
+  - cluster_id: "c1"
+    request_count: 6
+    members: ["r1", "r2", "r3", "r4", "r5", "r6"]
+    candidate_coverage:
+      - record_id: "wmt-001"
+        record_name: "Work-Management Tool"
+        capability_statement: "Trigger task or checklist creation from CRM events"
+pseudo_agent_usage: []
+assertions: {}
+recorded_output: |
+  {
+    "digest_date": "2026-06-30",
+    "themes": [
+      {"cluster_id": "c1", "theme_label": "Checklist-on-event automation", "request_count": 6, "tier": "likely_candidate", "signal_type": "enablement", "registry_coverage": {"record_id": "wmt-001", "record_name": "Work-Management Tool", "capability_statement": "Trigger task or checklist creation from CRM events"}, "recommendation": "Drive adoption of the existing capability rather than building.", "rationale": "An owned tool natively resolves the theme.", "risks": [], "uncertainty": "Adoption barriers are unknown.", "member_request_ids": ["r1", "r2"]}
+    ],
+    "pseudo_agent_graduations": [],
+    "noise_floor_count": 0
+  }

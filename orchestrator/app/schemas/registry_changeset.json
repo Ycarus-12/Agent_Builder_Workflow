@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RegistryChangeset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_date", "trigger", "changes", "stale_records", "run_summary"],
+  "properties": {
+    "run_date": { "type": "string", "minLength": 1 },
+    "trigger": { "type": "string", "enum": ["scheduled", "on_demand"] },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["record_id", "proposed_record_id", "field", "current", "proposed", "class", "change_kind", "evidence", "rationale"],
+        "properties": {
+          "record_id": { "type": ["string", "null"] },
+          "proposed_record_id": { "type": ["string", "null"] },
+          "field": { "type": "string", "minLength": 1 },
+          "current": {},
+          "proposed": {},
+          "class": { "type": "string", "enum": ["auto_merge", "needs_review"] },
+          "change_kind": { "type": "string", "enum": ["stamp", "metadata_mirror", "new_record", "capability", "clearance", "status", "graduation", "category", "owner", "other"] },
+          "evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["source", "locator"],
+            "properties": {
+              "source": { "type": "string", "enum": ["github", "sso", "registry", "portfolio"] },
+              "locator": { "type": ["string", "null"] }
+            }
+          },
+          "rationale": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stale_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["record_id", "reason"],
+        "properties": {
+          "record_id": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "run_summary": { "type": "string", "minLength": 1 }
+  }
+}

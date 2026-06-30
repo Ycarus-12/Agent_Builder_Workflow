@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PortfolioDigest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["digest_date", "themes", "pseudo_agent_graduations", "noise_floor_count"],
+  "properties": {
+    "digest_date": { "type": "string", "minLength": 1 },
+    "themes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cluster_id", "theme_label", "request_count", "tier", "signal_type", "registry_coverage", "recommendation", "rationale", "risks", "uncertainty", "member_request_ids"],
+        "properties": {
+          "cluster_id": { "type": "string", "minLength": 1 },
+          "theme_label": { "type": "string", "minLength": 1 },
+          "request_count": { "type": "integer", "minimum": 3 },
+          "tier": { "type": "string", "enum": ["worth_review", "likely_candidate", "desperate_need"] },
+          "signal_type": { "type": "string", "enum": ["build", "enablement", "route_elsewhere_recurrence"] },
+          "registry_coverage": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["record_id", "record_name", "capability_statement"],
+            "properties": {
+              "record_id": { "type": "string" },
+              "record_name": { "type": "string" },
+              "capability_statement": { "type": "string" }
+            }
+          },
+          "recommendation": { "type": "string", "minLength": 1 },
+          "rationale": { "type": "string", "minLength": 1 },
+          "risks": { "type": "array", "items": { "type": "string" } },
+          "uncertainty": { "type": "string", "minLength": 1 },
+          "member_request_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        }
+      }
+    },
+    "pseudo_agent_graduations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["record_id", "record_name", "recommendation", "rationale", "usage_evidence"],
+        "properties": {
+          "record_id": { "type": "string" },
+          "record_name": { "type": "string" },
+          "recommendation": { "type": "string", "enum": ["graduate", "not_yet"] },
+          "rationale": { "type": "string", "minLength": 1 },
+          "usage_evidence": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "noise_floor_count": { "type": "integer", "minimum": 0 }
+  }
+}

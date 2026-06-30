@@ -24,14 +24,18 @@ from .loader import (
     load_cost_deepdive_fixtures,
     load_cost_rom_fixtures,
     load_extraction_fixtures,
+    load_portfolio_fixtures,
     load_qa_fixtures,
+    load_registry_maintenance_fixtures,
     load_security_gov_fixtures,
     load_security_vuln_fixtures,
     load_stack_check_fixtures,
     load_triage_fixtures,
 )
 from .build_assertions import check_build
+from .portfolio_assertions import check_portfolio
 from .qa_assertions import check_qa
+from .registry_maintenance_assertions import check_registry_maintenance
 from .security_assertions import check_security
 from .deepdive_assertions import check_deepdive
 from .rom_assertions import check_rom
@@ -159,6 +163,26 @@ def run_cost_rom_replay(fixtures: list[CostRomFixture], schema: dict) -> list[Ca
 def run_cost_rom_suite_replay(schema: dict) -> SuiteResult:
     suite = SuiteResult()
     suite.cases += run_cost_rom_replay(load_cost_rom_fixtures(), schema)
+    return suite
+
+
+def run_portfolio_suite_replay(schema: dict) -> SuiteResult:
+    suite = SuiteResult()
+    for fx in load_portfolio_fixtures():
+        if fx.recorded_output is None:
+            suite.cases.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        suite.cases.append(_apply_expect(fx, check_portfolio(fx, fx.recorded_output, schema)))
+    return suite
+
+
+def run_registry_maintenance_suite_replay(schema: dict) -> SuiteResult:
+    suite = SuiteResult()
+    for fx in load_registry_maintenance_fixtures():
+        if fx.recorded_output is None:
+            suite.cases.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        suite.cases.append(_apply_expect(fx, check_registry_maintenance(fx, fx.recorded_output, schema)))
     return suite
 
 

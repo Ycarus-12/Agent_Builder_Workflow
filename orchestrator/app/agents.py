@@ -33,6 +33,8 @@ BUILD_FILE = "build-agent_v1_0.md"
 FUNCTIONAL_QA_FILE = "functional-qa_v1_0.md"
 SECURITY_VULN_FILE = "security-vulnerabilities_v1_0.md"
 SECURITY_GOV_FILE = "security-governance_v1_0.md"
+PORTFOLIO_FILE = "portfolio-pattern_v1_0.md"
+REGISTRY_MAINTENANCE_FILE = "registry-maintenance_v1_0.md"
 
 
 def _split_frontmatter(text: str) -> tuple[dict, str]:
@@ -122,6 +124,16 @@ def security_vuln_schema() -> dict:
 @lru_cache(maxsize=1)
 def security_gov_schema() -> dict:
     return json.loads((_SCHEMA_DIR / "security_governance.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def portfolio_digest_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "portfolio_digest.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def registry_changeset_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "registry_changeset.json").read_text(encoding="utf-8"))
 
 
 def load_intake_conversation_spec() -> AgentSpec:
@@ -272,5 +284,33 @@ def load_security_gov_spec() -> AgentSpec:
         output_mode=OutputMode.STRUCTURED,
         block_names=_SECURITY_BLOCKS + ("governance_standard",),
         output_schema=security_gov_schema(),
+        system_prompt=body,
+    )
+
+
+def load_portfolio_spec() -> AgentSpec:
+    front, body = load_agent_artifact(PORTFOLIO_FILE)
+    return AgentSpec(
+        name="portfolio-pattern",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.MID,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("clusters", "pseudo_agent_usage"),
+        output_schema=portfolio_digest_schema(),
+        system_prompt=body,
+    )
+
+
+def load_registry_maintenance_spec() -> AgentSpec:
+    front, body = load_agent_artifact(REGISTRY_MAINTENANCE_FILE)
+    return AgentSpec(
+        name="registry-maintenance",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.MID,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("run_context", "drift_report", "affected_records"),
+        output_schema=registry_changeset_schema(),
         system_prompt=body,
     )

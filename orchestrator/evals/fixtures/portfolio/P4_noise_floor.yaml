@@ -1,0 +1,27 @@
+case_id: P4
+agent: portfolio-pattern
+version: 1.0.0
+description: Three sub-threshold clusters -> themes empty, noise_floor_count 3
+expect_result: pass
+clusters:
+  - cluster_id: "c1"
+    request_count: 2
+    members: ["r1", "r2"]
+    candidate_coverage: []
+  - cluster_id: "c2"
+    request_count: 1
+    members: ["r3"]
+    candidate_coverage: []
+  - cluster_id: "c3"
+    request_count: 2
+    members: ["r4", "r5"]
+    candidate_coverage: []
+pseudo_agent_usage: []
+assertions: {}
+recorded_output: |
+  {
+    "digest_date": "2026-06-30",
+    "themes": [],
+    "pseudo_agent_graduations": [],
+    "noise_floor_count": 3
+  }
