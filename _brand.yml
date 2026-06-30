@@ -1,0 +1,27 @@
+# Posit Design System (posit-dev/brand-yml). Shiny for Python themes from this.
+color:
+  palette:
+    blue: "#447099"
+    orange: "#ee6331"
+    teal: "#419599"
+    green: "#729943"
+    burgundy: "#9a4665"
+    gray: "#404041"
+    black: "#151515"
+    white: "#FFFFFF"
+  foreground: "#151515"
+  background: "#FFFFFF"
+  primary: "#447099"
+  secondary: "#404041"
+  success: "#729943"
+  info: "#419599"
+  warning: "#ee6331"
+  danger: "#9a4665"
+typography:
+  base:
+    family: Open Sans
+  headings:
+    family: Open Sans
+    weight: 300
+  monospace:
+    family: Source Code Pro
