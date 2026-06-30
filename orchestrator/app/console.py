@@ -16,6 +16,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from .auth import User, require_enabler
 from .composition import Services, build_services, current_mode, rehydrate_runner
+from .notifications import notify_terminal
 from .request_store import RequestStore
 from .state_machine import Gate1aDecision
 from .templating import templates
@@ -76,9 +77,10 @@ def decide_gate_1a(
 ) -> RedirectResponse:
     runner = rehydrate_runner(services, request_id)
     selected = tuple(o.strip() for o in selected_options.split(",") if o.strip())
-    runner.resume_gate_1a(
+    step = runner.resume_gate_1a(
         Gate1aDecision(decision), selected_options=selected, decided_by=user.display_name, rationale=rationale,
     )
+    notify_terminal(services, request_id, step)
     return _redirect(request_id)
 
 
@@ -88,7 +90,8 @@ def decide_gate_1b(
     user: User = Depends(require_enabler), services: Services = Depends(get_services),
 ) -> RedirectResponse:
     runner = rehydrate_runner(services, request_id)
-    runner.resume_gate_1b(approved=_truthy(approved), decided_by=user.display_name, rationale=rationale)
+    step = runner.resume_gate_1b(approved=_truthy(approved), decided_by=user.display_name, rationale=rationale)
+    notify_terminal(services, request_id, step)
     return _redirect(request_id)
 
 
@@ -98,7 +101,8 @@ def decide_gate_2(
     user: User = Depends(require_enabler), services: Services = Depends(get_services),
 ) -> RedirectResponse:
     runner = rehydrate_runner(services, request_id)
-    runner.resume_gate_2(accepted=_truthy(accepted), decided_by=user.display_name, rationale=rationale)
+    step = runner.resume_gate_2(accepted=_truthy(accepted), decided_by=user.display_name, rationale=rationale)
+    notify_terminal(services, request_id, step)
     return _redirect(request_id)
 
 

@@ -32,6 +32,7 @@ from .agents import (
     load_triage_spec,
     stack_check_finding_schema,
 )
+from .config import console_base_url
 from .enums import BuildType, Outcome, Weight
 from .invocation import AgentSpec, InputEnvelope
 from .logging_audit import AuditLog
@@ -317,8 +318,9 @@ class PipelineRunner:
         if manifest["build_status"] == "needs_input":
             question_ids = _question_ids(manifest.get("questions", []))
             self.pipeline.build_needs_input(question_ids)
-            self._email(kind="build_needs_input", subject="Build needs input",
-                        body=json.dumps(manifest.get("questions", [])))
+            self._email(kind="build_needs_input",
+                        subject=f"Build needs input: {self._title()}",
+                        body=f"The build agent has questions for \"{self._title()}\".\n\nAnswer them: {self._console_link()}")
             self._persist()
             return PipelineStep(
                 kind="awaiting_build_input", stage=Stage.BUILD.value,
@@ -361,8 +363,10 @@ class PipelineRunner:
             self._persist()
             return self.advance()
         if outcome.to_director and not self._security_director_cleared:
-            self._email(kind="security_adjudication", subject="Security adjudication",
-                        body=self._security_summary())
+            self._email(kind="security_adjudication",
+                        subject=f"Security adjudication needed: {self._title()}",
+                        body=f"The security agents need adjudication for \"{self._title()}\".\n\n"
+                             f"{self._security_summary()}\n\nReview: {self._console_link()}")
             self._persist()
             return PipelineStep(
                 kind="awaiting_security_adjudication", stage=Stage.SECURITY_REVIEW.value,
@@ -498,12 +502,27 @@ class PipelineRunner:
         return "\n\n".join(parts)
 
     def _email(self, *, kind: str, subject: str, body: str) -> None:
-        self.emailer.send(to=self.director_email, subject=subject, body=body, kind=kind)
+        """Best-effort notify the AI Enabler. Email failure is audited, never fatal:
+        the decision is already persisted, so a down mail provider must not block it."""
+        try:
+            self.emailer.send(to=self.director_email, subject=subject, body=body, kind=kind)
+        except Exception as exc:  # provider/transport failure — record and continue
+            self.audit.raw(self.request_id, {"event": "email_error", "kind": kind, "error": str(exc)})
+
+    def _console_link(self) -> str:
+        return f"{console_base_url()}/requests/{self.request_id}"
+
+    def _title(self) -> str:
+        return (self.state.intake_record or {}).get("request_title", self.request_id)
 
     def _gate_step(self) -> PipelineStep:
         stage = self.pipeline.stage
         payload = self._gate_payload(stage)
-        self._email(kind="gate_prompt", subject=f"Decision needed: {stage.value}", body=json.dumps(payload)[:2000])
+        body = (
+            f"A decision is needed at {stage.value} for \"{self._title()}\".\n\n"
+            f"Review and decide: {self._console_link()}"
+        )
+        self._email(kind="gate_prompt", subject=f"Decision needed ({stage.value}): {self._title()}", body=body)
         self._persist()
         return PipelineStep(kind="awaiting_gate", stage=stage.value, payload=payload)
 

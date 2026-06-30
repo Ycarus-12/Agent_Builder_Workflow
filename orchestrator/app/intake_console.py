@@ -19,8 +19,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from .composition import Services, make_intake_runner, pipeline_runner_after_intake
 from .console import get_services
 from .intake import ConversationSession
+from .notifications import notify_submitted
 from .ports.identity import RequestorIdentity
-from .request_store import RequestStore, contact_key
+from .request_store import contact_key
 from .state_machine import Pipeline
 from .templating import templates
 
@@ -87,5 +88,8 @@ def intake_message(
     if result.marker.fired:
         outcome = runner.finalize(session, Pipeline(), date=date.today().isoformat())
         pipeline_runner_after_intake(services, outcome, request_id=request_id).advance()
+        # Confirm receipt to the guest (best-effort; never blocks the flow).
+        contact = services.datastore.get_record(contact_key(request_id))
+        notify_submitted(services, request_id, contact)
 
     return RedirectResponse(url=f"/intake/{request_id}", status_code=303)

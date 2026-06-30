@@ -69,6 +69,16 @@ class EmailerConfig:
         return bool(self.api_key)
 
 
+def ai_enabler_email() -> str:
+    """Where gate prompts / decision notices go (the AI Enabler). From env."""
+    return os.environ.get("AI_ENABLER_EMAIL") or os.environ.get("DIRECTOR_EMAIL") or "ai-enabler@example.com"
+
+
+def console_base_url() -> str:
+    """Public base URL of the console, for links in outbound email. From env."""
+    return os.environ.get("CONSOLE_BASE_URL", "http://localhost:8000").rstrip("/")
+
+
 def load_emailer_config() -> EmailerConfig:
     """Build the emailer config from the environment.
 

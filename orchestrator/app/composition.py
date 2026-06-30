@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from .agents import load_intake_conversation_spec, load_intake_extraction_spec
 from .config import (
     GatewayConfig,
+    ai_enabler_email,
     load_airtable_config,
     load_emailer_config,
     load_gateway_config,
@@ -169,7 +170,7 @@ def make_pipeline_runner(
         emailer=services.emailer,
         audit=services.audit,
         registry_source=services.registry_source,
-        director_email=director_email or os.environ.get("DIRECTOR_EMAIL", "director@example.com"),
+        director_email=director_email or ai_enabler_email(),
         **kwargs,
     )
 
