@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · Console{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<p><span class="pill {{ step.kind }}">{{ step.kind.replace('_', ' ') }}</span> &middot; <span class="muted">stage: {{ step.stage }}</span></p>
+
+{% if step.kind == 'awaiting_gate' and step.stage == 'gate_1a' %}
+  <h2>Gate 1a — pick a direction</h2>
+  {% set rec = step.payload.recommendation %}
+  <p><strong>Triage recommends:</strong> {{ rec.outcome }}{% if rec.recommended_option_id %} ({{ rec.recommended_option_id }}){% endif %}</p>
+  {% if rec.rationale %}<p class="muted">{{ rec.rationale }}</p>{% endif %}
+  <h3>Options</h3>
+  <ul>
+  {% for o in step.payload.options %}
+    <li><strong>{{ o.option_id }}</strong> — {{ o.label }} <span class="muted">[{{ o.route }}{% if o.weight %} · {{ o.weight }}{% endif %}]</span><br>{{ o.summary }}</li>
+  {% endfor %}
+  </ul>
+  <form method="post" action="/requests/{{ request_id }}/gate1a">
+    <label>Decision</label>
+    <select name="decision">
+      <option value="deep_dive">Deep-dive selected option(s)</option>
+      <option value="accept">Accept recommendation</option>
+      <option value="reject">Reject — re-triage</option>
+    </select>
+    <label>Selected option ids (comma-separated, for deep-dive)</label>
+    <input type="text" name="selected_options" placeholder="opt_001">
+    <label>Rationale</label>
+    <textarea name="rationale" rows="2"></textarea>
+    <p><button type="submit">Submit decision</button></p>
+  </form>
+
+{% elif step.kind == 'awaiting_gate' and step.stage == 'gate_1b' %}
+  <h2>Gate 1b — approve the spend</h2>
+  <pre>{{ step.payload.deepdive }}</pre>
+  <form method="post" action="/requests/{{ request_id }}/gate1b">
+    <input type="hidden" name="approved" value="true">
+    <label>Rationale</label><textarea name="rationale" rows="2"></textarea>
+    <button type="submit">Approve spend</button>
+  </form>
+  <form method="post" action="/requests/{{ request_id }}/gate1b">
+    <input type="hidden" name="approved" value="false">
+    <button class="secondary" type="submit">Decline</button>
+  </form>
+
+{% elif step.kind == 'awaiting_gate' and step.stage == 'gate_2' %}
+  <h2>Gate 2 — accept the build</h2>
+  <pre>{{ step.payload.security }}</pre>
+  <form method="post" action="/requests/{{ request_id }}/gate2">
+    <input type="hidden" name="accepted" value="true">
+    <label>Rationale</label><textarea name="rationale" rows="2"></textarea>
+    <button type="submit">Accept &amp; deploy</button>
+  </form>
+  <form method="post" action="/requests/{{ request_id }}/gate2">
+    <input type="hidden" name="accepted" value="false">
+    <button class="secondary" type="submit">Reject — back to build</button>
+  </form>
+
+{% elif step.kind == 'awaiting_build_input' %}
+  <h2>Build needs input</h2>
+  <form method="post" action="/requests/{{ request_id }}/build-input">
+    {% for q in step.payload.questions %}
+      <label>{{ q.question if q.question is defined else q }}</label>
+      <textarea name="{{ q.id if q.id is defined else q.question_id if q.question_id is defined else 'q' ~ loop.index }}" rows="2"></textarea>
+    {% endfor %}
+    <p><button type="submit">Send answers</button></p>
+  </form>
+
+{% elif step.kind == 'awaiting_security_adjudication' %}
+  <h2>Security — Director adjudication</h2>
+  {% if step.payload.disagreement %}<p><strong>The two security agents disagree.</strong></p>{% endif %}
+  <pre>{{ step.payload.summary }}</pre>
+  <form method="post" action="/requests/{{ request_id }}/security">
+    <input type="hidden" name="cleared" value="true">
+    <label>Rationale</label><textarea name="rationale" rows="2"></textarea>
+    <button type="submit">Clear — proceed</button>
+  </form>
+  <form method="post" action="/requests/{{ request_id }}/security">
+    <input type="hidden" name="cleared" value="false">
+    <button class="secondary" type="submit">Block — back to build</button>
+  </form>
+
+{% elif step.kind == 'awaiting_rnd_signoff' %}
+  <h2>R&amp;D security sign-off required</h2>
+  <p class="muted">Heavy or sensitive work — non-bypassable.</p>
+  <pre>{{ step.payload.summary }}</pre>
+  <form method="post" action="/requests/{{ request_id }}/rnd-signoff">
+    <button type="submit">Record R&amp;D sign-off</button>
+  </form>
+
+{% elif step.kind == 'terminal' %}
+  <h2>Complete</h2>
+  <p>This request reached <strong>{{ step.stage }}</strong>. No further action.</p>
+
+{% else %}
+  <p class="muted">No decision pending (status: {{ step.kind }}).</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Tool-Request Console{% endblock %}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 880px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+    h1, h2 { font-weight: 650; }
+    a { color: #1452cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid #e3e3e3; }
+    .pill { display: inline-block; padding: .12rem .55rem; border-radius: 999px; font-size: .8rem; background: #eef; color: #224; }
+    .pill.awaiting_gate, .pill.awaiting_security_adjudication, .pill.awaiting_rnd_signoff, .pill.awaiting_build_input { background: #fde9c8; color: #7a4a00; }
+    .pill.done { background: #d8f0dd; color: #14532d; }
+    form { margin: 1rem 0; padding: 1rem; border: 1px solid #e3e3e3; border-radius: 8px; }
+    button { font-size: .95rem; padding: .45rem 1rem; border-radius: 6px; border: 1px solid #1452cc; background: #1452cc; color: #fff; cursor: pointer; }
+    button.secondary { background: #fff; color: #1452cc; }
+    label { display: block; margin: .5rem 0 .2rem; font-weight: 600; }
+    textarea, input[type=text] { width: 100%; padding: .4rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    pre { background: #f6f6f6; padding: .8rem; border-radius: 6px; overflow-x: auto; font-size: .85rem; }
+    .muted { color: #666; }
+  </style>
+</head>
+<body>
+  <p class="muted"><a href="/requests">&larr; All requests</a></p>
+  {% block content %}{% endblock %}
+</body>
+</html>
