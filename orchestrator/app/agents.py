@@ -31,6 +31,8 @@ COST_ROM_FILE = "cost-estimation-rom_v1_1.md"
 COST_DEEPDIVE_FILE = "cost-estimation-deepdive_v1_0.md"
 BUILD_FILE = "build-agent_v1_0.md"
 FUNCTIONAL_QA_FILE = "functional-qa_v1_0.md"
+SECURITY_VULN_FILE = "security-vulnerabilities_v1_0.md"
+SECURITY_GOV_FILE = "security-governance_v1_0.md"
 
 
 def _split_frontmatter(text: str) -> tuple[dict, str]:
@@ -110,6 +112,16 @@ def build_manifest_schema() -> dict:
 @lru_cache(maxsize=1)
 def qa_verdict_schema() -> dict:
     return json.loads((_SCHEMA_DIR / "qa_verdict.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def security_vuln_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "security_vulnerabilities.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def security_gov_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "security_governance.json").read_text(encoding="utf-8"))
 
 
 def load_intake_conversation_spec() -> AgentSpec:
@@ -226,5 +238,39 @@ def load_functional_qa_spec() -> AgentSpec:
         output_mode=OutputMode.STRUCTURED,
         block_names=("build_manifest", "acceptance_criteria", "build_type"),
         output_schema=qa_verdict_schema(),
+        system_prompt=body,
+    )
+
+
+_SECURITY_BLOCKS = (
+    "build_type", "intake_extract", "transcript", "stack_check_finding",
+    "scanner_findings", "qa_findings",
+)
+
+
+def load_security_vuln_spec() -> AgentSpec:
+    front, body = load_agent_artifact(SECURITY_VULN_FILE)
+    return AgentSpec(
+        name="security-vulnerabilities",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.HIGH,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=_SECURITY_BLOCKS,
+        output_schema=security_vuln_schema(),
+        system_prompt=body,
+    )
+
+
+def load_security_gov_spec() -> AgentSpec:
+    front, body = load_agent_artifact(SECURITY_GOV_FILE)
+    return AgentSpec(
+        name="security-governance",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.HIGH,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=_SECURITY_BLOCKS + ("governance_standard",),
+        output_schema=security_gov_schema(),
         system_prompt=body,
     )

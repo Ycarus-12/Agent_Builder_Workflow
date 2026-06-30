@@ -21,6 +21,8 @@ from .agents import (
     load_intake_conversation_spec,
     load_intake_extraction_spec,
     qa_verdict_schema,
+    security_gov_schema,
+    security_vuln_schema,
     stack_check_finding_schema,
     triage_output_schema,
 )
@@ -33,6 +35,7 @@ from .evals.runner import (
     run_intake_suite_live,
     run_intake_suite_replay,
     run_qa_suite_replay,
+    run_security_suite_replay,
     run_stack_check_suite_replay,
     run_triage_suite_replay,
 )
@@ -46,6 +49,7 @@ _REPLAY_SUITES = {
     "deepdive": lambda: run_cost_deepdive_suite_replay(cost_deepdive_schema()),
     "build": lambda: run_build_suite_replay(build_manifest_schema()),
     "qa": lambda: run_qa_suite_replay(qa_verdict_schema()),
+    "security": lambda: run_security_suite_replay(security_vuln_schema(), security_gov_schema()),
 }
 
 
@@ -70,7 +74,7 @@ def main(argv: "list[str] | None" = None) -> int:
     parser.add_argument("--mode", choices=["replay", "live"], default="replay")
     parser.add_argument(
         "--suite",
-        choices=["intake", "stack-check", "triage", "rom", "deepdive", "build", "qa", "all"],
+        choices=["intake", "stack-check", "triage", "rom", "deepdive", "build", "qa", "security", "all"],
         default="all",
     )
     args = parser.parse_args(argv)

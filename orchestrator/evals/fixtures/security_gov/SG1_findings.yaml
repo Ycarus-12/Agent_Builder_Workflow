@@ -1,0 +1,17 @@
+case_id: SG1
+agent: security-governance
+version: 1.0.0
+description: governance findings; applied_sensitivity matches input; SEC-G ids
+expect_result: pass
+data_sensitivity: "customer"
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Checklist webhook handler",
+    "build_type": "code",
+    "applied_sensitivity": "customer",
+    "findings": [
+      {"finding_id": "SEC-G-001", "severity": "Medium", "category": "Access scope", "description": "The handler reads more CRM fields than the checklist needs, widening customer-data exposure.", "location": "src/handler.py:30", "governance_reference": "Data-minimization standard §2.1", "recommendation": "Request only the fields the checklist uses.", "scanner_covered": false}
+    ],
+    "human_summary": "One medium access-scope concern under the customer-data classification."
+  }

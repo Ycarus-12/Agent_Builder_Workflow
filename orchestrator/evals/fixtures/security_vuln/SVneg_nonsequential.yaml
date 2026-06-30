@@ -1,0 +1,18 @@
+case_id: SV_neg_nonsequential
+agent: security-vulnerabilities
+version: 1.0.0
+description: NEGATIVE — finding ids skip a number (001, 003)
+expect_result: fail
+replay_only: true
+assertions:
+  finding_ids_sequential: true
+recorded_output: |
+  {
+    "request_title": "Handler",
+    "build_type": "code",
+    "findings": [
+      {"finding_id": "SEC-V-001", "severity": "High", "category": "Injection", "description": "x", "location": "a:1", "recommendation": "fix", "scanner_covered": false},
+      {"finding_id": "SEC-V-003", "severity": "Low", "category": "Logging", "description": "y", "location": "a:2", "recommendation": "fix", "scanner_covered": true}
+    ],
+    "human_summary": "Two findings."
+  }
