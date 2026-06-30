@@ -46,13 +46,18 @@ What is already **frozen** and therefore constrains the choice:
 
 ## 2. Decision
 
+**Constraint for this version: free / OSS tools only.** No paid tiers, no GitHub
+Advanced Security. Paid upgrades (e.g. Semgrep Pro engine, a managed SCA feed) are
+deferred to a later revision and gated on demonstrated need. Every tool below is
+free to run in CI; note the Semgrep free-tier caveat in §6.
+
 Adopt an **open-source, GitHub-Actions-native** scanner set, normalized into the
 frozen contract by an adapter we own:
 
 | Contract slot | Tool | Rationale |
 |---|---|---|
-| **SAST** (`sast`) | **Semgrep OSS** (+ **Bandit** optional for Python-deep rules) | Multi-language (Python + JS + more), large free ruleset, SARIF output, trivial in Actions. Custom rules also back the prompt-injection check (§4). |
-| **SCA** (`sca`) | **Trivy** (alternative: OSV-Scanner) | One tool covers dependency CVEs (+ secrets + IaC misconfig); emits exactly `package / version / cve / severity / fix_version`. No GitHub Advanced Security dependency. |
+| **SAST** (`sast`) | **Semgrep OSS** (community rulesets) | Multi-language (Python + JS + more), large free ruleset, SARIF output, trivial in Actions. Custom rules also back the prompt-injection check (§4). **Bandit** is a per-repo opt-in, not a default (§6). |
+| **SCA** (`sca`) | **Trivy** | One tool covers dependency CVEs (+ IaC misconfig); emits exactly `package / version / cve / severity / fix_version`. Free, no GitHub Advanced Security dependency. OSV-Scanner rejected: SCA-only, no misconfig coverage (§6). |
 | **Secrets** (`secrets`) | **Gitleaks** | Fast, OSS, JSON maps cleanly to `type / file / line / detector`; pair with GitHub push-protection where available. |
 | **Glue** | **Normalizer adapter** (our code, in the build-artifact repo CI) | Maps each tool's SARIF/JSON into the `scanner_findings` contract and applies the severity mapping (§3). Keeps the contract stable across tool swaps — the same provider-neutral seam discipline used for the model gateway. |
 
@@ -109,14 +114,36 @@ coverage for agent builds as equivalent to code SAST.
   reusable GitHub Actions workflow template, (b) the normalizer adapter + tests.
   Neither touches the orchestrator spine.
 
-## 6. Open / pending
+## 6. Resolved sub-decisions and remaining gate
+
+Resolved (this revision):
+
+- **SCA tool → Trivy** (not OSV-Scanner). Trivy consolidates dependency CVEs and
+  IaC misconfig in one binary; OSV-Scanner is SCA-only and would still need a
+  separate misconfig story. Gitleaks remains the dedicated secrets tool (cleaner
+  `type/file/line/detector` output than Trivy's secret mode).
+- **Bandit → dropped from the default, kept as a per-repo opt-in.** Semgrep's
+  Python ruleset already covers the high-value Bandit checks; running both would
+  force cross-tool dedup in the normalizer for marginal gain. A documented hook
+  lets a Python-heavy artifact enable Bandit when justified.
+- **Version-pinning → mandatory.** The wall is non-bypassable and must be
+  *reproducible*: pin tool versions **and** ruleset versions/commit SHAs (Semgrep
+  community packs auto-update upstream otherwise) in the shared workflow template,
+  not per-repo. Pair the pin with a scheduled monthly refresh (Renovate/Dependabot
+  on the template) so pins stay current without silent drift — pinned-but-updated,
+  not frozen.
+
+Free-tier caveat (tracked, not blocking):
+
+- **Semgrep** OSS engine + community rules are free; the Pro engine and some
+  advanced rules are paid. This version stays on the free OSS engine + community
+  rules. Revisit only if coverage gaps are demonstrated.
+
+Remaining gate:
 
 - **R&D co-sign required** before this moves from Proposed to Accepted —
-  Architecture §4 puts scanner tooling and CI plumbing under R&D.
-- Confirm Trivy vs. OSV-Scanner for SCA (Trivy recommended for tool consolidation).
-- Decide whether Bandit runs alongside Semgrep for Python builds or is dropped to
-  keep the set minimal.
-- Pin tool + ruleset versions for reproducibility of the (non-bypassable) wall.
+  Architecture §4 puts scanner tooling and CI plumbing under R&D. This is now the
+  only open item.
 
 ## 7. Alternatives considered
 
@@ -125,4 +152,6 @@ coverage for agent builds as equivalent to code SAST.
   on private repos — rejected on cost and vendor-neutrality grounds.
 - **Minimal Python-only (Bandit + pip-audit + Gitleaks).** Lightest to stand up,
   but Python-only SAST/SCA leaves polyglot artifacts (e.g. JS) uncovered —
-  rejected as too narrow.
+  rejected as too narrow. (Bandit survives as a per-repo opt-in; see §6.)
+- **OSV-Scanner for SCA.** Cleaner, curated CVE feed, but dependency-only — no
+  misconfig coverage, so it would not consolidate. Rejected in favor of Trivy (§6).
