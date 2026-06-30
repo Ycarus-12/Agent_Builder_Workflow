@@ -130,7 +130,9 @@ class PipelineRunner:
         self.request_id = request_id
         self.gateway = gateway
         # stack-check needs a tool-use chat round-trip; the prod gateway is both.
-        self.chat_gateway = chat_gateway or _as_chat(gateway)
+        # Resolved lazily so wiring a non-chat gateway only fails if stack-check
+        # actually runs — the constructor stays capability-agnostic.
+        self._chat_gateway = chat_gateway
         self.datastore = datastore
         self.emailer = emailer
         self.audit = audit
@@ -155,6 +157,13 @@ class PipelineRunner:
         self._qa = load_functional_qa_spec()
         self._sec_vuln = load_security_vuln_spec()
         self._sec_gov = load_security_gov_spec()
+
+    @property
+    def chat_gateway(self) -> ChatGateway:
+        """The tool-use chat gateway for stack-check; resolved on first use."""
+        if self._chat_gateway is None:
+            self._chat_gateway = _as_chat(self.gateway)
+        return self._chat_gateway
 
     # == the drive loop ======================================================
     def advance(self) -> PipelineStep:
