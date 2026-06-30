@@ -30,6 +30,7 @@ TRIAGE_FILE = "triage-recommender_v1_0.md"
 COST_ROM_FILE = "cost-estimation-rom_v1_1.md"
 COST_DEEPDIVE_FILE = "cost-estimation-deepdive_v1_0.md"
 BUILD_FILE = "build-agent_v1_0.md"
+FUNCTIONAL_QA_FILE = "functional-qa_v1_0.md"
 
 
 def _split_frontmatter(text: str) -> tuple[dict, str]:
@@ -104,6 +105,11 @@ def cost_deepdive_schema() -> dict:
 @lru_cache(maxsize=1)
 def build_manifest_schema() -> dict:
     return json.loads((_SCHEMA_DIR / "build_manifest.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def qa_verdict_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "qa_verdict.json").read_text(encoding="utf-8"))
 
 
 def load_intake_conversation_spec() -> AgentSpec:
@@ -206,5 +212,19 @@ def load_build_spec() -> AgentSpec:
             "spec_context", "target_context", "director_responses",
         ),
         output_schema=build_manifest_schema(),
+        system_prompt=body,
+    )
+
+
+def load_functional_qa_spec() -> AgentSpec:
+    front, body = load_agent_artifact(FUNCTIONAL_QA_FILE)
+    return AgentSpec(
+        name="functional-qa",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.HIGH,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("build_manifest", "acceptance_criteria", "build_type"),
+        output_schema=qa_verdict_schema(),
         system_prompt=body,
     )

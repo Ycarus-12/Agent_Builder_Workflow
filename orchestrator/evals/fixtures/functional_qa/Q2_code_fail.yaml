@@ -1,0 +1,32 @@
+case_id: Q2
+agent: functional-qa
+version: 1.0.0
+description: code FAIL; wrong recipients + daily cron; routes back
+expect_result: pass
+build_type: "code"
+acceptance_criteria:
+  - "Report generated weekly"
+  - "Sent to the finance distribution list"
+oracle:
+  qa_status: "fail"
+  verdicts: ["fail", "fail"]
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Weekly finance report",
+    "build_type": "code",
+    "qa_status": "fail",
+    "verification_mode": "executed",
+    "criteria_verdicts": [
+      {"criterion": "Report generated weekly", "verdict": "fail", "method": "Inspected the scheduler and triggered a dry run.", "evidence": "The cron expression fires daily, not weekly; a run was emitted each day in the sandbox."},
+      {"criterion": "Sent to the finance distribution list", "verdict": "fail", "method": "Captured the outbound recipients on a dry run.", "evidence": "The message went to the all-staff alias, not the finance distribution list."}
+    ],
+    "findings": [],
+    "failure_report": {
+      "failed_criteria": ["Report generated weekly", "Sent to the finance distribution list"],
+      "repro": "Run the scheduler in the sandbox; observe daily firing and the all-staff recipient.",
+      "suggested_fix": "Change the cron to weekly and target the finance distribution list."
+    },
+    "validate_on_apply": [],
+    "independence_note": "Verdicts rest on the scheduler behavior and recipients I observed on a dry run."
+  }
