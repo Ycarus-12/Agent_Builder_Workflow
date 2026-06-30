@@ -1,10 +1,11 @@
-"""Requestor intake page — the conversational capture front end.
+"""Guest intake — the public conversational capture front end.
 
-A stateless chat: each message rehydrates the ConversationSession from the
-datastore, runs one intake-conversation turn, and re-persists. On the sign-off
-marker it finalizes (extraction -> stored record) and kicks the request into
-analysis, after which it surfaces in the Director console. Shares the wired
-services and templates with the gate console.
+Requestors are guests: no login. They provide contact info, then describe the
+problem in a stateless chat (each message rehydrates the ConversationSession,
+runs one intake-conversation turn, and re-persists). On the sign-off marker it
+finalizes (extraction -> stored record) and kicks the request into analysis,
+after which it surfaces in the AI Enabler console with the contact info attached.
+The per-request URL (unguessable id) doubles as the guest's status/tracking page.
 """
 
 from __future__ import annotations
@@ -16,10 +17,12 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from .composition import Services, make_intake_runner, pipeline_runner_after_intake
-from .console import _TEMPLATES, get_services
+from .console import get_services
 from .intake import ConversationSession
 from .ports.identity import RequestorIdentity
+from .request_store import RequestStore, contact_key
 from .state_machine import Pipeline
+from .templating import templates
 
 router = APIRouter()
 
@@ -30,31 +33,41 @@ def _session_key(request_id: str) -> str:
 
 @router.get("/intake", response_class=HTMLResponse)
 def intake_start(request: Request) -> HTMLResponse:
-    return _TEMPLATES.TemplateResponse(request, "intake_start.html", {})
+    return templates.TemplateResponse(request, "intake_start.html", {"user": None})
 
 
 @router.post("/intake/start")
 def intake_create(
-    requestor: str = Form(""), team: str = Form(""), services: Services = Depends(get_services)
+    name: str = Form(""), email: str = Form(""), team: str = Form(""),
+    services: Services = Depends(get_services),
 ) -> RedirectResponse:
     request_id = "req-" + uuid.uuid4().hex[:8]
     session = ConversationSession(
         session_id=request_id,
-        identity=RequestorIdentity(requestor=requestor or "Requestor", team=team or "Unknown"),
+        identity=RequestorIdentity(requestor=name or "Guest", team=team or "Unknown"),
     )
     services.datastore.store_record(_session_key(request_id), session.to_dict())
+    services.datastore.store_record(
+        contact_key(request_id),
+        {"name": name or "Guest", "email": email, "team": team or "Unknown"},
+    )
     return RedirectResponse(url=f"/intake/{request_id}", status_code=303)
 
 
 @router.get("/intake/{request_id}", response_class=HTMLResponse)
-def intake_view(
-    request_id: str, request: Request, services: Services = Depends(get_services)
-) -> HTMLResponse:
-    finalized = services.datastore.get_record(f"{request_id}:snapshot") is not None
+def intake_view(request_id: str, request: Request, services: Services = Depends(get_services)) -> HTMLResponse:
+    snapshot = services.datastore.get_record(f"{request_id}:snapshot")
     data = services.datastore.get_record(_session_key(request_id)) or {"turns": []}
-    return _TEMPLATES.TemplateResponse(
+    status = None
+    if snapshot is not None:
+        from .request_store import _status_for
+
+        status = {"stage": snapshot.get("pipeline", {}).get("stage"),
+                  "status": _status_for(snapshot.get("pipeline", {}))}
+    return templates.TemplateResponse(
         request, "intake_chat.html",
-        {"request_id": request_id, "turns": data.get("turns", []), "finalized": finalized},
+        {"request_id": request_id, "turns": data.get("turns", []),
+         "finalized": snapshot is not None, "status": status, "user": None},
     )
 
 
@@ -72,8 +85,6 @@ def intake_message(
     services.datastore.store_record(_session_key(request_id), session.to_dict())
 
     if result.marker.fired:
-        # Sign-off: extract the record, then drive analysis to the first gate so the
-        # request appears for the Director.
         outcome = runner.finalize(session, Pipeline(), date=date.today().isoformat())
         pipeline_runner_after_intake(services, outcome, request_id=request_id).advance()
 

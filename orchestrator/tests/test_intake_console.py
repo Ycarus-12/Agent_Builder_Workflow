@@ -1,5 +1,5 @@
-"""Requestor intake page: a conversation reaches sign-off, the record is extracted,
-and the request surfaces in the Director console — all over stateless HTTP turns."""
+"""Guest intake: no login, contact info captured, conversation to sign-off, and the
+request then appears for the AI Enabler with the contact attached."""
 
 import json
 from pathlib import Path
@@ -34,9 +34,9 @@ def _triage_build_light() -> str:
 
 
 @pytest.fixture()
-def client():
-    svc = build_services("offline")
-    gw = svc.gateway
+def svc():
+    s = build_services("offline")
+    gw = s.gateway
     gw.script("intake-conversation", [
         "What problem are you solving?",
         "Got it — auto-create the checklist on deal close.\n\n[[INTAKE_SIGNOFF_CONFIRMED]]",
@@ -45,38 +45,39 @@ def client():
     gw.script_chat("stack-check", [ChatTurn(tool_calls=[ToolCall("c1", "emit_finding", json.loads(_ro("stack_check/S3_empty.yaml")))])])
     gw.script("triage-recommender", [_triage_build_light()])
     gw.script("cost-estimation-rom", [_ro("rom/R2_build_ai.yaml")])
-    app.dependency_overrides[get_services] = lambda: svc
-    yield TestClient(app)
+    app.dependency_overrides[get_services] = lambda: s
+    yield s
     app.dependency_overrides.clear()
 
 
-def test_intake_start_page_renders(client):
-    r = client.get("/intake")
-    assert r.status_code == 200
-    assert "Start a tool request" in r.text
+def test_intake_is_public(svc):
+    # No login required to reach intake.
+    assert TestClient(app).get("/intake").status_code == 200
 
 
-def test_conversation_to_signoff_creates_a_request(client):
-    # start -> get a request id from the redirect
-    r = client.post("/intake/start", data={"requestor": "J. Rivera", "team": "PS"}, follow_redirects=False)
+def test_guest_request_to_signoff_then_visible_to_enabler(svc):
+    guest = TestClient(app)
+    # start as a guest with contact info
+    r = guest.post("/intake/start",
+                   data={"name": "Jane Rivera", "email": "jane@co.test", "team": "PS"},
+                   follow_redirects=False)
     assert r.status_code == 303
     request_id = r.headers["location"].rsplit("/", 1)[-1]
 
-    # chat view renders, not yet finalized
-    assert "Intake conversation" in client.get(f"/intake/{request_id}").text
+    guest.post(f"/intake/{request_id}/message", data={"message": "I need a checklist zap."}, follow_redirects=False)
+    guest.post(f"/intake/{request_id}/message", data={"message": "Yes, that's correct."}, follow_redirects=False)
 
-    # first turn: no marker -> still chatting
-    client.post(f"/intake/{request_id}/message", data={"message": "I need a checklist zap."}, follow_redirects=False)
-    view = client.get(f"/intake/{request_id}").text
-    assert "Send" in view and "submitted" not in view
+    # guest status page (public, by unguessable id) shows submitted + a status pill
+    status_page = guest.get(f"/intake/{request_id}").text
+    assert "submitted" in status_page.lower()
+    assert "awaiting gate" in status_page
 
-    # second turn: marker fires -> finalized + driven into analysis
-    client.post(f"/intake/{request_id}/message", data={"message": "Yes, that's correct."}, follow_redirects=False)
-    done = client.get(f"/intake/{request_id}").text
-    assert "submitted" in done.lower()
+    # the AI Enabler sees it with the guest's contact info
+    enabler = TestClient(app)
+    enabler.post("/login", data={"username": "enabler", "password": "enabler"})
+    listing = enabler.get("/requests").text
+    assert request_id in listing and "jane@co.test" in listing
 
-    # the request now appears in the Director console, awaiting Gate 1a
-    listing = client.get("/requests").text
-    assert request_id in listing
-    assert "awaiting gate" in listing
-    assert "Gate 1a" in client.get(f"/requests/{request_id}").text
+
+def test_guest_cannot_reach_enabler_console(svc):
+    assert TestClient(app).get("/requests", follow_redirects=False).status_code == 303  # -> /login

@@ -21,6 +21,11 @@ class RequestSummary:
     stage: str
     request_title: str
     status: str  # awaiting_gate | awaiting_build_input | security_review | running | done
+    contact: dict | None = None  # guest requestor's contact info {name, email, team}
+
+
+def contact_key(request_id: str) -> str:
+    return f"{request_id}:contact"
 
 
 def _status_for(pipeline: dict) -> str:
@@ -47,7 +52,11 @@ class RequestStore:
     def load_snapshot(self, request_id: str) -> dict | None:
         return self.datastore.get_record(f"{request_id}:snapshot")
 
+    def contact_of(self, request_id: str) -> dict | None:
+        return self.datastore.get_record(contact_key(request_id))
+
     def summaries(self) -> list[RequestSummary]:
+        """All in-flight requests (the AI Enabler sees every request)."""
         out: list[RequestSummary] = []
         for rid in self.list_ids():
             snap = self.load_snapshot(rid)
@@ -57,6 +66,6 @@ class RequestStore:
             title = (snap.get("state", {}).get("intake_record") or {}).get("request_title", rid)
             out.append(RequestSummary(
                 request_id=rid, stage=pipeline.get("stage", "unknown"),
-                request_title=title, status=_status_for(pipeline),
+                request_title=title, status=_status_for(pipeline), contact=self.contact_of(rid),
             ))
         return out
