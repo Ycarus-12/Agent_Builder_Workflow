@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from .agents import load_intake_conversation_spec, load_intake_extraction_spec
 from .config import (
     GatewayConfig,
     load_airtable_config,
@@ -23,6 +24,8 @@ from .config import (
 )
 from .logging_audit import AuditLog
 from .pipeline_runner import PipelineRunner, RunState
+from .retry_loop import DEFAULT_MAX_ATTEMPTS
+from .runtime import IntakeOutcome, IntakeRunner
 from .ports import (
     AirtableDatastore,
     Datastore,
@@ -132,6 +135,21 @@ def build_services(mode: str | None = None, *, identity: IdentityProvider | None
     )
 
 
+def make_intake_runner(
+    services: Services, *, request_id: str, max_attempts: int = DEFAULT_MAX_ATTEMPTS
+) -> IntakeRunner:
+    """Construct an IntakeRunner from the wired services (the conversation->record loop)."""
+    return IntakeRunner(
+        gateway=services.gateway,
+        datastore=services.datastore,
+        audit=services.audit,
+        conversation_spec=load_intake_conversation_spec(),
+        extraction_spec=load_intake_extraction_spec(),
+        request_id=request_id,
+        max_attempts=max_attempts,
+    )
+
+
 def make_pipeline_runner(
     services: Services,
     *,
@@ -153,4 +171,22 @@ def make_pipeline_runner(
         registry_source=services.registry_source,
         director_email=director_email or os.environ.get("DIRECTOR_EMAIL", "director@example.com"),
         **kwargs,
+    )
+
+
+def pipeline_runner_after_intake(
+    services: Services, outcome: IntakeOutcome, *, request_id: str, **kwargs
+) -> PipelineRunner:
+    """Hand intake's result to the pipeline driver — the one lifecycle seam.
+
+    Intake leaves the pipeline at analysis with the record stored and the
+    transcript persisted; this rebuilds the RunState from those and returns a
+    PipelineRunner positioned to advance().
+    """
+    if outcome.status != "record_ready" or outcome.record is None:
+        raise CompositionError(f"intake outcome is '{outcome.status}', not record_ready")
+    transcript = services.datastore.get_transcript(outcome.transcript_reference or "") or ""
+    state = RunState(intake_record=outcome.record, transcript=transcript)
+    return make_pipeline_runner(
+        services, pipeline=outcome.pipeline, state=state, request_id=request_id, **kwargs
     )

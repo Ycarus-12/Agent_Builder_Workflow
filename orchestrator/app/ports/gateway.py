@@ -26,21 +26,40 @@ class ModelGateway(ABC):
         """
 
 
-class FakeModelGateway(ModelGateway):
+class FakeModelGateway(ModelGateway, ChatGateway):
     """Deterministic gateway for tests and the spine's offline end-to-end flow.
 
-    Responses are scripted per agent name as an ordered list consumed one call at
-    a time, so a retry loop can be driven through fail-then-succeed sequences.
+    Implements both seams: `complete()` for single-output structured/prose agents
+    and `chat()` for the one tool-using agent (stack-check), so the whole offline
+    flow — intake through deploy — runs on one fake. Responses are scripted per
+    agent name as ordered lists consumed one call at a time, so a retry loop can be
+    driven through fail-then-succeed sequences.
     """
 
     def __init__(self, scripts: dict[str, list[str]] | None = None) -> None:
         self._scripts: dict[str, list[str]] = {k: list(v) for k, v in (scripts or {}).items()}
         self._cursor: dict[str, int] = defaultdict(int)
+        self._chat_scripts: dict[str, list[ChatTurn]] = {}
+        self._chat_cursor: dict[str, int] = defaultdict(int)
         self.calls: list[tuple[str, str]] = []  # (agent_name, rendered_envelope)
 
     def script(self, agent_name: str, responses: list[str]) -> None:
         self._scripts[agent_name] = list(responses)
         self._cursor[agent_name] = 0
+
+    def script_chat(self, agent_name: str, turns: list[ChatTurn]) -> None:
+        self._chat_scripts[agent_name] = list(turns)
+        self._chat_cursor[agent_name] = 0
+
+    def chat(self, *, agent_name, system_prompt, messages, tools, tool_choice="auto") -> ChatTurn:
+        turns = self._chat_scripts.get(agent_name)
+        if not turns:
+            raise KeyError(f"FakeModelGateway has no chat script for agent '{agent_name}'")
+        idx = self._chat_cursor[agent_name]
+        if idx >= len(turns):
+            raise IndexError(f"FakeModelGateway exhausted chat script for '{agent_name}'")
+        self._chat_cursor[agent_name] += 1
+        return turns[idx]
 
     def complete(self, envelope: InputEnvelope) -> str:
         name = envelope.spec.name
