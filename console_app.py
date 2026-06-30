@@ -17,32 +17,22 @@ from shiny import App, reactive, render, ui  # noqa: E402
 
 from app.composition import build_services  # noqa: E402
 from app.shiny_logic import apply_decision, list_summaries, request_detail  # noqa: E402
+from app.shiny_ui import head, header  # noqa: E402
 
 services = build_services()
 
-_POSIT_HEAD = ui.tags.head(
-    ui.tags.link(rel="stylesheet", href="https://fonts.bunny.net/css?family=open-sans:300,400,600,700"),
-    ui.tags.style(
-        ":root{--bs-primary:#447099;--bs-link-color:#447099;}"
-        "body{font-family:'Open Sans',system-ui,sans-serif;}"
-        ".btn-primary{background-color:#447099;border-color:#447099;}"
-        "h1,h2,h3{font-weight:300;}"
-        ".errbox{color:#9a4665;font-size:.85rem;border:1px solid #e6c3cf;background:#faf0f3;"
-        "padding:.5rem .7rem;border-radius:8px;margin:.5rem 0;}"
-    ),
-)
-
 app_ui = ui.page_sidebar(
     ui.sidebar(
-        ui.input_action_button("refresh", "Refresh", class_="btn-primary"),
+        ui.input_action_button("refresh", "Refresh", class_="btn btn-primary"),
         ui.output_ui("error_banner"),
         ui.input_select("request", "Requests", choices={}),
-        width=320,
+        width=330,
     ),
-    _POSIT_HEAD,
-    ui.h2("AI Enabler console"),
-    ui.output_ui("detail"),
+    head(),
+    header("AI Enabler console"),
+    ui.div(ui.output_ui("detail"), class_="wrap"),
     title="Tool-Request Console",
+    padding=0,
 )
 
 
@@ -81,17 +71,19 @@ def server(input, output, session):
         refresh()
         rid = input.request()
         if not rid:
-            return ui.p(ui.tags.em("Select a request from the left."))
+            return ui.div(ui.p(ui.tags.em("Select a request from the left."), class_="muted"), class_="card")
         try:
             d = request_detail(services, rid)
         except Exception as exc:
-            return ui.div(ui.tags.b("Error loading request. "), str(exc), class_="errbox")
+            return ui.div(ui.div(ui.tags.b("Error loading request. "), str(exc), class_="errbox"), class_="card")
         step, contact = d["step"], d["contact"]
-        head = [ui.h3(d["title"]),
-                ui.p(ui.tags.b(step.kind.replace("_", " ")), f" · stage: {step.stage} · {rid}")]
+        head_bits = [ui.h1(d["title"]),
+                     ui.p(ui.span(step.kind.replace("_", " "), class_=f"pill {step.kind}"),
+                          ui.span(f"  stage: {step.stage}  ·  {rid}", class_="muted"))]
         if contact:
-            head.append(ui.p(f"Requestor: {contact.get('name', '')} · {contact.get('email', '')}"))
-        return ui.div(*head, ui.hr(), *_controls(step))
+            head_bits.append(ui.p(ui.tags.b("Requestor: "),
+                                  f"{contact.get('name', '')}  ·  {contact.get('email', '')}", class_="muted"))
+        return ui.div(*head_bits, ui.div(*_controls(step), class_="card"))
 
     @reactive.effect
     @reactive.event(input.submit_decision)
@@ -109,7 +101,6 @@ def server(input, output, session):
 
 
 def _controls(step):
-    """Inputs + a shared submit button for the pending decision."""
     kind, stage = step.kind, step.stage
     if kind == "awaiting_gate" and stage == "gate_1a":
         opts = step.payload.get("options", [])
@@ -121,38 +112,37 @@ def _controls(step):
                             {"deep_dive": "Deep-dive selected", "accept": "Accept", "reject": "Reject — re-triage"}),
             ui.input_text("g1a_opts", "Selected option ids (comma-separated)", placeholder="opt_001"),
             ui.input_text("rationale", "Rationale"),
-            ui.input_action_button("submit_decision", "Submit decision", class_="btn-primary"),
+            ui.input_action_button("submit_decision", "Submit decision", class_="btn btn-primary"),
         ]
     if kind == "awaiting_gate" and stage == "gate_1b":
         return [ui.tags.pre(str(step.payload.get("deepdive"))),
                 ui.input_radio_buttons("g1b", "Spend", {"approve": "Approve", "decline": "Decline"}),
                 ui.input_text("rationale", "Rationale"),
-                ui.input_action_button("submit_decision", "Submit", class_="btn-primary")]
+                ui.input_action_button("submit_decision", "Submit", class_="btn btn-primary")]
     if kind == "awaiting_gate" and stage == "gate_2":
         return [ui.tags.pre(str(step.payload.get("security"))),
                 ui.input_radio_buttons("g2", "Acceptance", {"accept": "Accept & deploy", "reject": "Reject — back to build"}),
                 ui.input_text("rationale", "Rationale"),
-                ui.input_action_button("submit_decision", "Submit", class_="btn-primary")]
+                ui.input_action_button("submit_decision", "Submit", class_="btn btn-primary")]
     if kind == "awaiting_security_adjudication":
         return [ui.tags.pre(str(step.payload.get("summary"))),
                 ui.input_radio_buttons("sec", "Adjudication", {"clear": "Clear — proceed", "block": "Block — back to build"}),
                 ui.input_text("rationale", "Rationale"),
-                ui.input_action_button("submit_decision", "Submit", class_="btn-primary")]
+                ui.input_action_button("submit_decision", "Submit", class_="btn btn-primary")]
     if kind == "awaiting_rnd_signoff":
         return [ui.tags.pre(str(step.payload.get("summary"))),
                 ui.p("Heavy/sensitive work — R&D security sign-off required."),
-                ui.input_action_button("submit_decision", "Record R&D sign-off", class_="btn-primary")]
+                ui.input_action_button("submit_decision", "Record R&D sign-off", class_="btn btn-primary")]
     if kind == "awaiting_build_input":
-        qs = step.payload.get("questions", [])
         widgets = []
-        for i, q in enumerate(qs):
+        for i, q in enumerate(step.payload.get("questions", [])):
             label = q.get("question") if isinstance(q, dict) else str(q)
             widgets.append(ui.input_text_area(f"q{i}", label, rows=2))
-        widgets.append(ui.input_action_button("submit_decision", "Send answers", class_="btn-primary"))
+        widgets.append(ui.input_action_button("submit_decision", "Send answers", class_="btn btn-primary"))
         return widgets
     if kind == "terminal":
         return [ui.p(f"Complete — reached {step.stage}. No further action.")]
-    return [ui.p(ui.tags.em(f"No decision pending ({kind})."))]
+    return [ui.p(ui.tags.em(f"No decision pending ({kind})."), class_="muted")]
 
 
 def _dispatch(input, services, rid, step):
