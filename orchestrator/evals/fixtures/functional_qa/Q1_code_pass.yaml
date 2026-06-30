@@ -1,0 +1,28 @@
+case_id: Q1
+agent: functional-qa
+version: 1.0.0
+description: code PASS; every criterion verified on observed behavior
+expect_result: pass
+build_type: "code"
+acceptance_criteria:
+  - "Checklist auto-created on deal close"
+  - "Owner notified"
+oracle:
+  qa_status: "pass"
+  verdicts: ["pass", "pass"]
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Auto-create kickoff checklist on deal close",
+    "build_type": "code",
+    "qa_status": "pass",
+    "verification_mode": "executed",
+    "criteria_verdicts": [
+      {"criterion": "Checklist auto-created on deal close", "verdict": "pass", "method": "Sent a sample deal-close webhook to the sandbox and inspected the work tool.", "evidence": "A new checklist appeared in the work tool within ~5s of the webhook."},
+      {"criterion": "Owner notified", "verdict": "pass", "method": "Watched the owner channel after the webhook.", "evidence": "A notification to the deal owner was observed in the channel."}
+    ],
+    "findings": [],
+    "failure_report": null,
+    "validate_on_apply": [],
+    "independence_note": "Both verdicts rest on runtime behavior I observed by executing the artifact in the sandbox."
+  }

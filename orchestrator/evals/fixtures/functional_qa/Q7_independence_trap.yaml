@@ -1,0 +1,32 @@
+case_id: Q7
+agent: functional-qa
+version: 1.0.0
+description: independence trap; runtime contradicts the manifest map; fail on observation
+expect_result: pass
+build_type: "code"
+acceptance_criteria:
+  - "Owner notified on deal close"
+oracle:
+  qa_status: "fail"
+  verdicts: ["fail"]
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Notify owner on deal close",
+    "build_type": "code",
+    "qa_status": "fail",
+    "verification_mode": "executed",
+    "criteria_verdicts": [
+      {"criterion": "Owner notified on deal close", "verdict": "fail", "method": "Ran the artifact with a sample deal-close event and watched outputs.", "evidence": "No notification was emitted at runtime; the handler returns before reaching the notify call."}
+    ],
+    "findings": [
+      {"severity": "advisory", "criterion": "Owner notified on deal close", "summary": "Build map overstated coverage", "detail": "The criteria map listed notify_owner(), but that path is unreachable at runtime."}
+    ],
+    "failure_report": {
+      "failed_criteria": ["Owner notified on deal close"],
+      "repro": "Trigger a deal-close event in the sandbox; observe no notification.",
+      "suggested_fix": "Call notify_owner() before the early return."
+    },
+    "validate_on_apply": [],
+    "independence_note": "The verdict rests on observed runtime behavior, not on the build's stated map."
+  }

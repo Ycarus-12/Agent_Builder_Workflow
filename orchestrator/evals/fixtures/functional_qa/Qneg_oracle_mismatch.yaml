@@ -1,0 +1,27 @@
+case_id: Q_neg_oracle
+agent: functional-qa
+version: 1.0.0
+description: NEGATIVE — verdict disagrees with the ground-truth oracle
+expect_result: fail
+replay_only: true
+build_type: "code"
+acceptance_criteria:
+  - "Owner notified"
+oracle:
+  qa_status: "fail"
+  verdicts: ["fail"]
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Notify owner",
+    "build_type": "code",
+    "qa_status": "pass",
+    "verification_mode": "executed",
+    "criteria_verdicts": [
+      {"criterion": "Owner notified", "verdict": "pass", "method": "Ran it.", "evidence": "Saw a notification."}
+    ],
+    "findings": [],
+    "failure_report": null,
+    "validate_on_apply": [],
+    "independence_note": "Observed runtime behavior."
+  }

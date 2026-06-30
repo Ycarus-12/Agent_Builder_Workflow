@@ -1,0 +1,28 @@
+case_id: Q6
+agent: functional-qa
+version: 1.0.0
+description: config_instructions; reasoning review; pass_pending_apply
+expect_result: pass
+build_type: "config_instructions"
+acceptance_criteria:
+  - "Leads routed by territory"
+oracle:
+  qa_status: "pass_pending_apply"
+  verdicts: ["unverifiable_pending_apply"]
+assertions: {}
+recorded_output: |
+  {
+    "request_title": "Configure CRM territory routing",
+    "build_type": "config_instructions",
+    "qa_status": "pass_pending_apply",
+    "verification_mode": "reasoning_review",
+    "criteria_verdicts": [
+      {"criterion": "Leads routed by territory", "verdict": "unverifiable_pending_apply", "method": "Reviewed the guide steps against the CRM admin model.", "evidence": "The guide's step 2 defines a territory-to-rep rule; correctness can only be confirmed once applied."}
+    ],
+    "findings": [],
+    "failure_report": null,
+    "validate_on_apply": [
+      {"criterion": "Leads routed by territory", "check_on_apply": "After applying the guide, create a test lead and confirm it is assigned by territory."}
+    ],
+    "independence_note": "I reviewed the guide myself; no execution environment exists for config_instructions."
+  }
