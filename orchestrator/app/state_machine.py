@@ -250,3 +250,34 @@ class Pipeline:
         self._require(Stage.GATE_2)
         # Acceptance deploys; rejection returns the tool to build for rework.
         self._go(Stage.DEPLOY_AND_REGISTER if accepted else Stage.BUILD)
+
+    # -- serialization (durable resume across stateless web requests) ------
+    def to_dict(self) -> dict:
+        """Full position, serialized — enough to rebuild this Pipeline exactly."""
+        return {
+            "stage": self.stage.value,
+            "analysis_step": self.analysis_step.value if self.analysis_step else None,
+            "re_triage": self.re_triage,
+            "triage_outcome": self.triage_outcome.value if self.triage_outcome else None,
+            "selected_options": list(self.selected_options),
+            "weight": self.weight.value,
+            "data_sensitivity": self.data_sensitivity.value,
+            "awaiting_build_input": self.awaiting_build_input,
+            "pending_build_questions": list(self.pending_build_questions),
+            "history": list(self.history),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Pipeline":
+        return cls(
+            stage=Stage(data["stage"]),
+            analysis_step=AnalysisStep(data["analysis_step"]) if data.get("analysis_step") else None,
+            re_triage=data.get("re_triage", False),
+            triage_outcome=Outcome(data["triage_outcome"]) if data.get("triage_outcome") else None,
+            selected_options=tuple(data.get("selected_options", ())),
+            weight=Weight(data.get("weight", Weight.LIGHT.value)),
+            data_sensitivity=DataSensitivity(data.get("data_sensitivity", DataSensitivity.UNSPECIFIED.value)),
+            awaiting_build_input=data.get("awaiting_build_input", False),
+            pending_build_questions=tuple(data.get("pending_build_questions", ())),
+            history=list(data.get("history", [])),
+        )

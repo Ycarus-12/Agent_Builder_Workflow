@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Start a request · Tool-Request Workflow{% endblock %}
+{% block topbar_sub %}New request{% endblock %}
+{% block crumb %}<a class="crumb" href="/requests">&larr; All requests</a>{% endblock %}
+{% block content %}
+<h1>Start a tool request</h1>
+<p class="meta">Tell us who you are, then describe the problem in a short conversation. Intake captures the request — it never decides or blocks.</p>
+<div class="card">
+  <form method="post" action="/intake/start">
+    <label>Your name</label>
+    <input type="text" name="requestor" placeholder="Jane Rivera">
+    <label>Team</label>
+    <input type="text" name="team" placeholder="Professional Services">
+    <div class="actions"><button type="submit">Begin intake</button></div>
+  </form>
+</div>
+{% endblock %}

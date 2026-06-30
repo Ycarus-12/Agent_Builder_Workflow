@@ -174,6 +174,25 @@ def make_pipeline_runner(
     )
 
 
+def rehydrate_runner(services: Services, request_id: str) -> PipelineRunner:
+    """Rebuild a PipelineRunner from its persisted snapshot (durable resume).
+
+    The web layer holds no runner between calls: each gate decision rehydrates,
+    resumes, and re-persists. Raises if no snapshot exists for the id.
+    """
+    snapshot = services.datastore.get_record(f"{request_id}:snapshot")
+    if snapshot is None:
+        raise CompositionError(f"no persisted snapshot for request '{request_id}'")
+    return PipelineRunner.from_snapshot(
+        snapshot,
+        gateway=services.gateway,
+        datastore=services.datastore,
+        emailer=services.emailer,
+        audit=services.audit,
+        registry_source=services.registry_source,
+    )
+
+
 def pipeline_runner_after_intake(
     services: Services, outcome: IntakeOutcome, *, request_id: str, **kwargs
 ) -> PipelineRunner:

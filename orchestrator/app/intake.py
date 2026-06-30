@@ -32,6 +32,25 @@ class ConversationSession:
     def render_conversation(self) -> str:
         return "\n".join(f"{role}: {content}" for role, content in self.turns)
 
+    # -- serialization (durable across stateless intake web turns) ---------
+    def to_dict(self) -> dict:
+        return {
+            "session_id": self.session_id,
+            "identity": {"requestor": self.identity.requestor, "team": self.identity.team},
+            "turns": [list(t) for t in self.turns],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ConversationSession":
+        session = cls(
+            session_id=data["session_id"],
+            identity=RequestorIdentity(
+                requestor=data["identity"]["requestor"], team=data["identity"]["team"]
+            ),
+        )
+        session.turns = [tuple(t) for t in data.get("turns", [])]
+        return session
+
 
 @dataclass
 class TurnResult:

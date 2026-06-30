@@ -1,17 +1,22 @@
 """FastAPI surface for the orchestrator spine.
 
-Skeleton only in this phase: a health probe and a stage-introspection endpoint.
-The real request-driving endpoints arrive when intake is wired end-to-end
-through the gateway (build-order Phase 3).
+Health/introspection probes plus the Director gate console (app.console): the
+server-rendered UI where the Director acts on the pipeline's stop points. The
+console holds no state between requests — each page rehydrates a runner from the
+datastore, so it is safe behind Connect's multi-process/ephemeral hosting.
 """
 
 from __future__ import annotations
 
 from fastapi import FastAPI
 
+from .console import router as console_router
+from .intake_console import router as intake_router
 from .state_machine import DIRECTOR_GATES, Stage
 
 app = FastAPI(title="Tool-Request Orchestrator", version="0.1.0")
+app.include_router(console_router)
+app.include_router(intake_router)
 
 
 @app.get("/health")
