@@ -63,6 +63,24 @@ def test_unknown_mode_rejected():
         build_services("staging")
 
 
+def test_per_seam_gateway_live_with_offline_storage(monkeypatch):
+    # The common local setup: real OpenRouter, in-memory datastore/email.
+    for k in ("AIRTABLE_API_KEY", "AIRTABLE_BASE_ID", "RESEND_API_KEY", "RESEND_FROM"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "or_test")
+    monkeypatch.setenv("GATEWAY_MODE", "live")
+    svc = build_services("offline")
+    assert isinstance(svc.gateway, OpenRouterGateway)
+    assert isinstance(svc.datastore, InMemoryDatastore)
+    assert isinstance(svc.emailer, InMemoryEmailer)
+
+
+def test_per_seam_unknown_value_rejected(monkeypatch):
+    monkeypatch.setenv("GATEWAY_MODE", "sometimes")
+    with pytest.raises(CompositionError, match="GATEWAY_MODE"):
+        build_services("offline")
+
+
 def test_make_pipeline_runner_wires_services():
     svc = build_services("offline")
     runner = make_pipeline_runner(
