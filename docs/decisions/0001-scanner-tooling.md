@@ -1,9 +1,10 @@
 # ADR 0001 — Scanner tooling selection
 
-- **Status:** Proposed (pending R&D co-sign — see §6)
+- **Status:** Accepted (Director-approved 2026-06-30)
 - **Date:** 2026-06-30
-- **Owner:** Director · **Co-owner:** R&D (owns CI plumbing and build environments)
-- **Decision authority:** Director, co-signed by R&D
+- **Owner:** Director · **Implements with:** R&D at build time (owns CI plumbing and build environments)
+- **Decision authority:** Director (sole). R&D is engaged at the build/security-review
+  stage, not as a gate on this tooling decision.
 - **Resolves:** context_06_29.md §7 open decision #4 ("The specific scanner tool
   selection and CI plumbing"); the "scanner tooling selection" item on the
   CLAUDE.md deferred list.
@@ -139,11 +140,13 @@ Free-tier caveat (tracked, not blocking):
   advanced rules are paid. This version stays on the free OSS engine + community
   rules. Revisit only if coverage gaps are demonstrated.
 
-Remaining gate:
+Status:
 
-- **R&D co-sign required** before this moves from Proposed to Accepted —
-  Architecture §4 puts scanner tooling and CI plumbing under R&D. This is now the
-  only open item.
+- **Accepted by the Director (2026-06-30).** R&D is not a gate on this decision;
+  they are engaged at the build/security-review stage, where the reusable workflow
+  template and the normalizer adapter (§5) get stood up against their CI plumbing.
+  Any tool substitution R&D needs at that point is a normalizer change, not a
+  reopening of this decision.
 
 ## 7. Alternatives considered
 
