@@ -1,0 +1,36 @@
+case_id: R_neg_order
+agent: cost-estimation-rom
+version: 1.1.0
+description: NEGATIVE — costed_options not in the input option order
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Two-option request"
+  data_sensitivity: "internal"
+option_list:
+  - option_id: "opt_001"
+    route: "configure"
+    label: "Configure"
+    tool_name: "Tool"
+    capability_id: "tool-c01"
+  - option_id: "opt_002"
+    route: "build"
+    label: "Build"
+    avenue: "code"
+    engine: "deterministic"
+    weight: "light"
+assertions:
+  option_order_preserved: true
+recorded_output: |
+  {
+    "request_title": "Two-option request",
+    "costed_options": [
+      {"option_id": "opt_002", "route": "build", "label": "Build", "effort_band": "M",
+       "run_cost_band": null, "license_band": null, "maintenance_band": "medium",
+       "confidence": "medium", "key_drivers": ["engine=deterministic", "light build"]},
+      {"option_id": "opt_001", "route": "configure", "label": "Configure", "effort_band": "S",
+       "run_cost_band": null, "license_band": null, "maintenance_band": "low",
+       "confidence": "high", "key_drivers": ["named capability", "bounded scope"]}
+    ],
+    "estimate_summary": "Both options are modest in effort with low ongoing upkeep."
+  }

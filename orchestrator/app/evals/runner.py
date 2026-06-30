@@ -11,14 +11,17 @@ from ..ports.identity import RequestorIdentity
 from .assertions import CaseResult, check_conversation, check_extraction
 from .loader import (
     ConversationFixture,
+    CostRomFixture,
     ExtractionFixture,
     StackCheckFixture,
     TriageFixture,
     load_conversation_fixtures,
+    load_cost_rom_fixtures,
     load_extraction_fixtures,
     load_stack_check_fixtures,
     load_triage_fixtures,
 )
+from .rom_assertions import check_rom
 from .stack_check_assertions import check_stack_check
 from .triage_assertions import check_triage
 
@@ -127,6 +130,22 @@ def run_intake_suite_replay(schema: dict) -> SuiteResult:
     suite = SuiteResult()
     suite.cases += run_extraction_replay(load_extraction_fixtures(), schema)
     suite.cases += run_conversation_replay(load_conversation_fixtures())
+    return suite
+
+
+def run_cost_rom_replay(fixtures: list[CostRomFixture], schema: dict) -> list[CaseResult]:
+    results = []
+    for fx in fixtures:
+        if fx.recorded_output is None:
+            results.append(CaseResult(fx.case_id, False, ["no recorded_output for replay mode"]))
+            continue
+        results.append(_apply_expect(fx, check_rom(fx, fx.recorded_output, schema)))
+    return results
+
+
+def run_cost_rom_suite_replay(schema: dict) -> SuiteResult:
+    suite = SuiteResult()
+    suite.cases += run_cost_rom_replay(load_cost_rom_fixtures(), schema)
     return suite
 
 

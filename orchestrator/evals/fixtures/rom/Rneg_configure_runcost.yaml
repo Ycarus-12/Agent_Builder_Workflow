@@ -1,0 +1,27 @@
+case_id: R_neg_configure_runcost
+agent: cost-estimation-rom
+version: 1.1.0
+description: NEGATIVE — configure option with a non-null run_cost_band (schema const null)
+expect_result: fail
+replay_only: true
+intake_record:
+  request_title: "Configure request"
+  data_sensitivity: "internal"
+option_list:
+  - option_id: "opt_001"
+    route: "configure"
+    label: "Configure"
+    tool_name: "Tool"
+    capability_id: "tool-c01"
+assertions:
+  schema_valid: true
+recorded_output: |
+  {
+    "request_title": "Configure request",
+    "costed_options": [
+      {"option_id": "opt_001", "route": "configure", "label": "Configure", "effort_band": "S",
+       "run_cost_band": "low", "license_band": null, "maintenance_band": "low",
+       "confidence": "high", "key_drivers": ["named capability", "bounded scope"]}
+    ],
+    "estimate_summary": "Small effort."
+  }

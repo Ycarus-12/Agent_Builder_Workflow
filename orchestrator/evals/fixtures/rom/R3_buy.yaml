@@ -1,0 +1,44 @@
+case_id: R3
+agent: cost-estimation-rom
+version: 1.1.0
+description: Commodity buy; license band non-null
+expect_result: pass
+intake_record:
+  request_title: "Collect e-signatures on contracts"
+  systems_involved: ["contracts folder"]
+  data_sensitivity: "internal"
+option_list:
+  - option_id: "opt_001"
+    route: "buy"
+    label: "Adopt an e-signature SaaS"
+    vendor_or_category: "e-signature SaaS"
+    bought_capability: "legally-binding e-signature"
+assertions:
+  option_count_matches_input: true
+  option_order_preserved: true
+  field_assertions:
+    opt_001:
+      route: "buy"
+      effort_band: "S"
+      run_cost_band: "low"
+      license_band: "mid"
+      maintenance_band: "low"
+      confidence: "medium"
+recorded_output: |
+  {
+    "request_title": "Collect e-signatures on contracts",
+    "costed_options": [
+      {
+        "option_id": "opt_001",
+        "route": "buy",
+        "label": "Adopt an e-signature SaaS",
+        "effort_band": "S",
+        "run_cost_band": "low",
+        "license_band": "mid",
+        "maintenance_band": "low",
+        "confidence": "medium",
+        "key_drivers": ["commodity category with integration glue only", "per-seat license band mid"]
+      }
+    ],
+    "estimate_summary": "Buying a commodity e-signature product keeps effort small (integration only); license sits in a mid band and the vendor handles maintenance."
+  }
