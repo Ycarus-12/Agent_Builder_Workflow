@@ -28,6 +28,7 @@ INTAKE_EXTRACTION_FILE = "intake-extraction_v1_0.md"
 STACK_CHECK_FILE = "stack-check_v1_0.md"
 TRIAGE_FILE = "triage-recommender_v1_0.md"
 COST_ROM_FILE = "cost-estimation-rom_v1_1.md"
+COST_DEEPDIVE_FILE = "cost-estimation-deepdive_v1_0.md"
 
 
 def _split_frontmatter(text: str) -> tuple[dict, str]:
@@ -92,6 +93,11 @@ def triage_output_schema() -> dict:
 @lru_cache(maxsize=1)
 def cost_rom_schema() -> dict:
     return json.loads((_SCHEMA_DIR / "cost_rom.json").read_text(encoding="utf-8"))
+
+
+@lru_cache(maxsize=1)
+def cost_deepdive_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "cost_deepdive.json").read_text(encoding="utf-8"))
 
 
 def load_intake_conversation_spec() -> AgentSpec:
@@ -161,5 +167,19 @@ def load_cost_rom_spec() -> AgentSpec:
         output_mode=OutputMode.STRUCTURED,
         block_names=("INTAKE RECORD", "OPTION LIST"),
         output_schema=cost_rom_schema(),
+        system_prompt=body,
+    )
+
+
+def load_cost_deepdive_spec() -> AgentSpec:
+    front, body = load_agent_artifact(COST_DEEPDIVE_FILE)
+    return AgentSpec(
+        name="cost-estimation-deepdive",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.HIGH,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("intake_extract", "transcript", "stack_check_finding", "rom_output", "selected_options"),
+        output_schema=cost_deepdive_schema(),
         system_prompt=body,
     )

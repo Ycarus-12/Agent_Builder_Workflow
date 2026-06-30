@@ -1,0 +1,62 @@
+case_id: D1
+agent: cost-estimation-deepdive
+version: 1.0.0
+description: N=1 configure direction; expectation-setting recommendation
+expect_result: pass
+intake_extract:
+  request_title: "Auto-create kickoff checklist on deal close"
+  data_sensitivity: "customer"
+transcript: "Requestor: build the kickoff checklist automatically when a deal closes."
+stack_check_finding:
+  registry_confidence: "high"
+  no_existing_coverage: false
+rom_output:
+  costed_options:
+    - option_id: "opt_001"
+      route: "configure"
+      effort_band: "S"
+selected_options:
+  - option_id: "opt_001"
+    route: "configure"
+    label: "Configure work-management deal-close trigger"
+assertions:
+  direction_count_matches_input: true
+  direction_order_preserved: true
+  recommendation_present: true
+  recommendation_direction_in_selected: true
+  effort_low_le_expected_le_high: true
+  usd_low_le_expected_le_high: true
+  retrieved_at_iso_dates: true
+  every_dollar_has_source_or_assumption: true
+  no_prose_outside_json: true
+recorded_output: |
+  {
+    "request_title": "Auto-create kickoff checklist on deal close",
+    "directions": [
+      {
+        "option_id": "opt_001",
+        "route": "configure",
+        "label": "Configure work-management deal-close trigger",
+        "phases": [
+          {"name": "Discovery", "effort_low_h": 4, "effort_expected_h": 6, "effort_high_h": 10, "notes": "Confirm the CRM deal-close event payload."},
+          {"name": "Configuration", "effort_low_h": 8, "effort_expected_h": 12, "effort_high_h": 20, "notes": null},
+          {"name": "Integration testing", "effort_low_h": 4, "effort_expected_h": 8, "effort_high_h": 14, "notes": "Wide spread: payload fields may be missing."},
+          {"name": "Rollout", "effort_low_h": 2, "effort_expected_h": 4, "effort_high_h": 6, "notes": null}
+        ],
+        "effort_total": {"low_h": 18, "expected_h": 30, "high_h": 50},
+        "run_cost": null,
+        "license_cost": null,
+        "maintenance": {"monthly_h": 1, "rationale": "Occasional rule drift as deal stages change in the CRM."},
+        "first_year_total_usd": {"low": 1800, "expected": 3000, "high": 5000, "basis": "Internal effort at a blended rate; configure incurs no license or run cost."},
+        "annual_steady_state_usd": {"low": 600, "expected": 1200, "high": 2400, "basis": "Maintenance hours only."},
+        "assumptions": ["AC#1 tolerates near-real-time (not sub-second) checklist creation."],
+        "risks": ["The CRM event payload may lack the owner field needed for AC#3."]
+      }
+    ],
+    "recommendation": {
+      "recommended_direction": "opt_001",
+      "rationale": "This commits roughly 30 expected hours and no license; success at Gate 2 is the checklist appearing within a minute of deal close with the owner assigned.",
+      "key_tradeoffs": ["The build alternative opt_002 from ROM carries higher effort and ongoing maintenance.", "Depends on the host tool's CRM integration remaining stable."],
+      "what_would_change_it": "If AC#1 turns out to require sub-second latency the host trigger cannot meet, reconsider at Gate 1a."
+    }
+  }
