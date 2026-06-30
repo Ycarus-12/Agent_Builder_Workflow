@@ -62,6 +62,9 @@ _DEFAULT_GOVERNANCE_STANDARD = "(governance standard supplied by the operator at
 # persistently failing build cannot spin forever. Not a contract gate — a backstop.
 _MAX_REMEDIATION_CYCLES = 5
 
+# Datastore key holding the index of known request ids (for listing in-flight work).
+REQUEST_INDEX_KEY = "__requests__"
+
 # Structural backstop on a single advance() call: every iteration makes forward
 # progress, returns at a stop, or takes a remediation-capped backward edge, so a
 # real run takes well under this. The cap guarantees termination regardless of
@@ -521,6 +524,84 @@ class PipelineRunner:
     def _persist(self) -> None:
         self.datastore.set_stage(self.request_id, self.pipeline.stage.value)
         self.datastore.store_record(f"{self.request_id}:state", self.state.to_dict())
+        self.datastore.store_record(f"{self.request_id}:snapshot", self.snapshot())
+        self._register_in_index()
+
+    def snapshot(self) -> dict[str, Any]:
+        """A self-contained record of this runner's position — enough to rehydrate."""
+        return {
+            "request_id": self.request_id,
+            "pipeline": self.pipeline.to_dict(),
+            "state": self.state.to_dict(),
+            "meta": {
+                "security_director_cleared": self._security_director_cleared,
+                "rnd_signed_off": self._rnd_signed_off,
+                "remediation_cycles": self._remediation_cycles,
+                "director_email": self.director_email,
+            },
+        }
+
+    def _register_in_index(self) -> None:
+        index = self.datastore.get_record(REQUEST_INDEX_KEY) or {"request_ids": []}
+        if self.request_id not in index["request_ids"]:
+            index["request_ids"].append(self.request_id)
+            self.datastore.store_record(REQUEST_INDEX_KEY, index)
+
+    def _ensure_security_outcome(self) -> SecurityOutcome | None:
+        """Recompute the (deterministic) security outcome from stored findings.
+
+        Used on rehydrate: the two agents already ran and their findings are in
+        RunState, so the reconciliation is reproducible without re-invoking them.
+        """
+        if self._security_outcome is None and self.state.security_vuln and self.state.security_gov:
+            self._security_outcome = reconcile_security(
+                self.state.security_vuln.get("findings", []),
+                self.state.security_gov.get("findings", []),
+                weight=self.pipeline.weight, data_sensitivity=self.pipeline.data_sensitivity,
+            )
+        return self._security_outcome
+
+    def current_step(self) -> PipelineStep:
+        """The pending decision WITHOUT running anything — for a rehydrated runner.
+
+        Read-only: no agent calls, no email, no persist. `advance()` is what runs
+        work; this just reports where a resumed request is waiting.
+        """
+        p = self.pipeline
+        if p.is_terminal:
+            return self._terminal_step()
+        if p.is_awaiting_build_input:
+            return PipelineStep(kind="awaiting_build_input", stage=Stage.BUILD.value,
+                                payload={"questions": (self.state.build_manifest or {}).get("questions", [])})
+        if p.stage in DIRECTOR_GATES:
+            return PipelineStep(kind="awaiting_gate", stage=p.stage.value, payload=self._gate_payload(p.stage))
+        if p.stage is Stage.SECURITY_REVIEW:
+            outcome = self._ensure_security_outcome()
+            if outcome and outcome.to_director and not self._security_director_cleared:
+                return PipelineStep(kind="awaiting_security_adjudication", stage=p.stage.value,
+                                    payload={"summary": self._security_summary(), "disagreement": outcome.disagreement})
+            if outcome and outcome.rnd_signoff_required and not self._rnd_signed_off:
+                return PipelineStep(kind="awaiting_rnd_signoff", stage=p.stage.value,
+                                    payload={"summary": self._security_summary()})
+        # Not at a stop (e.g. freshly handed off at analysis): caller should advance().
+        return PipelineStep(kind="running", stage=p.stage.value, payload={})
+
+    @classmethod
+    def from_snapshot(cls, snapshot: dict, **seams) -> "PipelineRunner":
+        """Rebuild a runner from snapshot() output; `seams` are the wired ports."""
+        meta = snapshot.get("meta", {})
+        runner = cls(
+            pipeline=Pipeline.from_dict(snapshot["pipeline"]),
+            state=RunState(**snapshot["state"]),
+            request_id=snapshot["request_id"],
+            director_email=meta.get("director_email", "director@example.com"),
+            **seams,
+        )
+        runner._security_director_cleared = meta.get("security_director_cleared", False)
+        runner._rnd_signed_off = meta.get("rnd_signed_off", False)
+        runner._remediation_cycles = meta.get("remediation_cycles", 0)
+        runner._ensure_security_outcome()
+        return runner
 
 
 # == module helpers ==========================================================
