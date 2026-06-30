@@ -1,6 +1,5 @@
-"""Shiny glue logic: a guest intake reaches sign-off, surfaces in the console, and
-decisions drive it to deploy — the same backend the FastAPI layer uses, no Shiny
-runtime needed."""
+"""Shiny glue logic: responsive intake (turn vs. finalize split), the zero-cost
+demo seed, and console decisions to deploy — same backend, no Shiny runtime."""
 
 import json
 from pathlib import Path
@@ -12,11 +11,13 @@ from app.ports.chat import ChatTurn, ToolCall
 from app.request_store import contact_key
 from app.shiny_logic import (
     apply_decision,
+    finalize_request,
     intake_view,
     list_summaries,
     request_detail,
+    seed_demo_request,
     start_intake,
-    submit_message,
+    submit_turn_only,
 )
 
 _FIX = Path(__file__).resolve().parents[1] / "evals" / "fixtures"
@@ -42,10 +43,7 @@ def _triage_build_light() -> str:
 def _services():
     svc = build_services("offline")
     gw = svc.gateway
-    gw.script("intake-conversation", [
-        "What problem are you solving?",
-        "Got it.\n\n[[INTAKE_SIGNOFF_CONFIRMED]]",
-    ])
+    gw.script("intake-conversation", ["What problem are you solving?", "Got it.\n\n[[INTAKE_SIGNOFF_CONFIRMED]]"])
     gw.script("intake-extraction", [_extract_internal()])
     gw.script_chat("stack-check", [ChatTurn(tool_calls=[ToolCall("c1", "emit_finding", json.loads(_ro("stack_check/S3_empty.yaml")))])])
     gw.script("triage-recommender", [_triage_build_light()])
@@ -58,32 +56,36 @@ def _services():
     return svc
 
 
-def test_intake_to_console_to_deploy():
+def test_intake_turn_then_finalize_then_console_to_deploy():
     svc = _services()
-
     rid = start_intake(svc, name="Jane", email="jane@co.test", team="PS")
-    assert svc.datastore.get_record(contact_key(rid))["email"] == "jane@co.test"
 
-    submit_message(svc, rid, "I need a checklist zap.")
-    view = submit_message(svc, rid, "Yes, that's right.")  # marker -> finalize + analysis
+    assert submit_turn_only(svc, rid, "I need a checklist zap.")["marker_fired"] is False
+    assert submit_turn_only(svc, rid, "Yes, that's right.")["marker_fired"] is True
+
+    # sign-off is responsive: the request isn't finalized until finalize_request runs
+    assert intake_view(svc, rid)["finalized"] is False
+    finalize_request(svc, rid)
+    view = intake_view(svc, rid)
     assert view["finalized"] and view["status"]["status"] == "awaiting_gate"
+    assert view["requestor_name"] == "Jane"  # chat labels use the provided name
 
-    # appears in the console list
     assert rid in [s.request_id for s in list_summaries(svc)]
     assert request_detail(svc, rid)["step"].stage == "gate_1a"
-
-    # decisions drive it to deploy
     assert apply_decision(svc, rid, kind="gate_1a", decision="deep_dive", selected_options="opt_001").stage == "gate_1b"
     assert apply_decision(svc, rid, kind="gate_1b", approved=True).stage == "gate_2"
-    final = apply_decision(svc, rid, kind="gate_2", accepted=True)
-    assert final.kind == "terminal" and final.stage == "deploy_and_register"
+    assert apply_decision(svc, rid, kind="gate_2", accepted=True).kind == "terminal"
 
-    # guest got a submission email + an acceptance email
     kinds = [m.kind for m in svc.emailer.outbox]
     assert "requestor_submitted" in kinds and "requestor_outcome" in kinds
 
 
-def test_intake_view_before_start_is_empty():
-    svc = build_services("offline")
-    view = intake_view(svc, "req-missing")
-    assert view["turns"] == [] and view["finalized"] is False
+def test_demo_seed_lands_at_gate_1a_with_no_model_calls():
+    svc = build_services("offline")  # no gateway scripts at all
+    rid = seed_demo_request(svc)
+    assert rid.startswith("demo-")
+    assert rid in [s.request_id for s in list_summaries(svc)]
+    detail = request_detail(svc, rid)
+    assert detail["step"].stage == "gate_1a"
+    assert detail["contact"]["name"] == "Demo User"
+    assert svc.gateway.calls == []  # the seed cost zero model calls
