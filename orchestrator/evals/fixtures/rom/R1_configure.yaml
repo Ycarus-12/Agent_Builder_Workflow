@@ -1,0 +1,49 @@
+case_id: R1
+agent: cost-estimation-rom
+version: 1.1.0
+description: Clear configure match, low complexity
+expect_result: pass
+intake_record:
+  request_title: "Auto-create kickoff checklist on deal close"
+  systems_involved: ["CRM", "work-management tool"]
+  data_sensitivity: "customer"
+option_list:
+  - option_id: "opt_001"
+    route: "configure"
+    label: "Configure work-management deal-close trigger"
+    tool_name: "Work-Management Tool"
+    capability_id: "wmt-001-c02"
+assertions:
+  option_count_matches_input: true
+  option_order_preserved: true
+  key_drivers_count_in_range: true
+  no_prose_outside_json: true
+  no_dollar_figures: true
+  no_timeline_language: true
+  no_cross_option_recommendation: true
+  field_assertions:
+    opt_001:
+      route: "configure"
+      effort_band: "S"
+      run_cost_band: null
+      license_band: null
+      maintenance_band: "low"
+      confidence: "high"
+recorded_output: |
+  {
+    "request_title": "Auto-create kickoff checklist on deal close",
+    "costed_options": [
+      {
+        "option_id": "opt_001",
+        "route": "configure",
+        "label": "Configure work-management deal-close trigger",
+        "effort_band": "S",
+        "run_cost_band": null,
+        "license_band": null,
+        "maintenance_band": "low",
+        "confidence": "high",
+        "key_drivers": ["named native capability wmt-001-c02", "bounded single-trigger scope"]
+      }
+    ],
+    "estimate_summary": "Configuring the existing native trigger is a small, well-scoped change with negligible run cost and low ongoing upkeep handled by the host tool."
+  }

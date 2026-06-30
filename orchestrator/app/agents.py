@@ -27,6 +27,7 @@ INTAKE_CONVERSATION_FILE = "intake-conversation_v1_0.md"
 INTAKE_EXTRACTION_FILE = "intake-extraction_v1_0.md"
 STACK_CHECK_FILE = "stack-check_v1_0.md"
 TRIAGE_FILE = "triage-recommender_v1_0.md"
+COST_ROM_FILE = "cost-estimation-rom_v1_1.md"
 
 
 def _split_frontmatter(text: str) -> tuple[dict, str]:
@@ -88,6 +89,11 @@ def triage_output_schema() -> dict:
     return json.loads((_SCHEMA_DIR / "triage_output.json").read_text(encoding="utf-8"))
 
 
+@lru_cache(maxsize=1)
+def cost_rom_schema() -> dict:
+    return json.loads((_SCHEMA_DIR / "cost_rom.json").read_text(encoding="utf-8"))
+
+
 def load_intake_conversation_spec() -> AgentSpec:
     front, body = load_agent_artifact(INTAKE_CONVERSATION_FILE)
     return AgentSpec(
@@ -141,5 +147,19 @@ def load_triage_spec() -> AgentSpec:
         output_mode=OutputMode.STRUCTURED,
         block_names=("intake_record", "transcript", "stack_check_result"),
         output_schema=triage_output_schema(),
+        system_prompt=body,
+    )
+
+
+def load_cost_rom_spec() -> AgentSpec:
+    front, body = load_agent_artifact(COST_ROM_FILE)
+    return AgentSpec(
+        name="cost-estimation-rom",
+        version=str(front.get("version", "0.0.0")),
+        commit_hash=repo_commit_hash(),
+        tier=Tier.SLM,
+        output_mode=OutputMode.STRUCTURED,
+        block_names=("INTAKE RECORD", "OPTION LIST"),
+        output_schema=cost_rom_schema(),
         system_prompt=body,
     )

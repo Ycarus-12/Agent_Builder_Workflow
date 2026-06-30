@@ -63,8 +63,40 @@ class TriageFixture:
     replay_only: bool = False
 
 
+@dataclass(frozen=True)
+class CostRomFixture:
+    case_id: str
+    description: str
+    intake_record: dict
+    option_list: list[dict]
+    assertions: dict
+    expect_result: str = "pass"
+    recorded_output: str | None = None
+    replay_only: bool = False
+
+
 def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def load_cost_rom_fixtures(directory: Path | None = None) -> list[CostRomFixture]:
+    directory = directory or (_FIXTURES_DIR / "rom")
+    out: list[CostRomFixture] = []
+    for path in sorted(directory.glob("*.yaml")):
+        d = _load_yaml(path)
+        out.append(
+            CostRomFixture(
+                case_id=d["case_id"],
+                description=d.get("description", ""),
+                intake_record=d.get("intake_record", {}),
+                option_list=d.get("option_list", []),
+                assertions=d.get("assertions", {}),
+                expect_result=d.get("expect_result", "pass"),
+                recorded_output=d.get("recorded_output"),
+                replay_only=d.get("replay_only", False),
+            )
+        )
+    return out
 
 
 def load_extraction_fixtures(directory: Path | None = None) -> list[ExtractionFixture]:

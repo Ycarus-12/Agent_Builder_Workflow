@@ -1,0 +1,45 @@
+case_id: R2
+agent: cost-estimation-rom
+version: 1.1.0
+description: Heavy AI build; run-cost applies, license null
+expect_result: pass
+intake_record:
+  request_title: "Triage regulated complaints"
+  systems_involved: ["complaints inbox"]
+  data_sensitivity: "regulated"
+option_list:
+  - option_id: "opt_001"
+    route: "build"
+    label: "Complaint classifier agent"
+    avenue: "code"
+    engine: "ai"
+    weight: "heavy"
+assertions:
+  option_count_matches_input: true
+  option_order_preserved: true
+  field_assertions:
+    opt_001:
+      route: "build"
+      effort_band: "L"
+      run_cost_band: "moderate"
+      license_band: null
+      maintenance_band: "high"
+      confidence: "medium"
+recorded_output: |
+  {
+    "request_title": "Triage regulated complaints",
+    "costed_options": [
+      {
+        "option_id": "opt_001",
+        "route": "build",
+        "label": "Complaint classifier agent",
+        "effort_band": "L",
+        "run_cost_band": "moderate",
+        "license_band": null,
+        "maintenance_band": "high",
+        "confidence": "medium",
+        "key_drivers": ["engine=ai raises run cost and maintenance", "weight=heavy build", "regulated data lifts effort"]
+      }
+    ],
+    "estimate_summary": "A heavy AI build carries moderate inference run cost and high maintenance; effort is lifted by the regulated-data handling requirements."
+  }
