@@ -1,0 +1,28 @@
+case_id: D_neg_reco_not_selected
+agent: cost-estimation-deepdive
+version: 1.0.0
+description: NEGATIVE — recommended_direction not among selected_options
+expect_result: fail
+replay_only: true
+selected_options:
+  - option_id: "opt_001"
+    route: "configure"
+    label: "A"
+assertions:
+  recommendation_direction_in_selected: true
+recorded_output: |
+  {
+    "request_title": "Bad reco",
+    "directions": [
+      {"option_id": "opt_001", "route": "configure", "label": "A",
+       "phases": [{"name": "Configure", "effort_low_h": 2, "effort_expected_h": 4, "effort_high_h": 6, "notes": null}],
+       "effort_total": {"low_h": 2, "expected_h": 4, "high_h": 6},
+       "run_cost": null, "license_cost": null,
+       "maintenance": {"monthly_h": 1, "rationale": "Light upkeep."},
+       "first_year_total_usd": {"low": 1, "expected": 2, "high": 3, "basis": "x"},
+       "annual_steady_state_usd": {"low": 1, "expected": 2, "high": 3, "basis": "x"},
+       "assumptions": ["a"], "risks": ["r"]}
+    ],
+    "recommendation": {"recommended_direction": "opt_999", "rationale": "x",
+      "key_tradeoffs": ["a", "b"], "what_would_change_it": "x"}
+  }

@@ -1,0 +1,79 @@
+case_id: D3
+agent: cost-estimation-deepdive
+version: 1.0.0
+description: N=2 build vs buy; recommendation picks one with a specific comparison
+expect_result: pass
+intake_extract:
+  request_title: "Collect e-signatures on contracts"
+  data_sensitivity: "internal"
+transcript: "Requestor: get signatures on contracts without manual chasing."
+stack_check_finding:
+  registry_confidence: "empty"
+  no_existing_coverage: true
+rom_output:
+  costed_options:
+    - option_id: "opt_001"
+      route: "build"
+      effort_band: "M"
+    - option_id: "opt_002"
+      route: "buy"
+      effort_band: "S"
+selected_options:
+  - option_id: "opt_001"
+    route: "build"
+    label: "Build a lightweight e-signature flow"
+  - option_id: "opt_002"
+    route: "buy"
+    label: "Adopt an e-signature SaaS"
+assertions:
+  direction_count_matches_input: true
+  direction_order_preserved: true
+  recommendation_direction_in_selected: true
+  effort_low_le_expected_le_high: true
+  usd_low_le_expected_le_high: true
+  every_dollar_has_source_or_assumption: true
+recorded_output: |
+  {
+    "request_title": "Collect e-signatures on contracts",
+    "directions": [
+      {
+        "option_id": "opt_001",
+        "route": "build",
+        "label": "Build a lightweight e-signature flow",
+        "phases": [
+          {"name": "Design", "effort_low_h": 8, "effort_expected_h": 12, "effort_high_h": 20, "notes": null},
+          {"name": "Build", "effort_low_h": 24, "effort_expected_h": 40, "effort_high_h": 70, "notes": "Legal e-sign compliance adds uncertainty."}
+        ],
+        "effort_total": {"low_h": 32, "expected_h": 52, "high_h": 90},
+        "run_cost": {"monthly_low_usd": 10, "monthly_expected_usd": 25, "monthly_high_usd": 60, "basis": "Hosting + storage", "sources": [{"url": "https://example.com/hosting-pricing", "retrieved_at": "2026-06-29", "vendor_or_publisher": "Example Cloud", "note": null}]},
+        "license_cost": null,
+        "maintenance": {"monthly_h": 3, "rationale": "Compliance updates and dependency patching."},
+        "first_year_total_usd": {"low": 5000, "expected": 9000, "high": 16000, "basis": "Effort plus hosting."},
+        "annual_steady_state_usd": {"low": 1200, "expected": 2400, "high": 4800, "basis": "Maintenance plus hosting."},
+        "assumptions": ["Legal accepts an in-house e-sign flow."],
+        "risks": ["Regulatory e-sign requirements may exceed a light build."]
+      },
+      {
+        "option_id": "opt_002",
+        "route": "buy",
+        "label": "Adopt an e-signature SaaS",
+        "phases": [
+          {"name": "Integration", "effort_low_h": 6, "effort_expected_h": 10, "effort_high_h": 18, "notes": null}
+        ],
+        "effort_total": {"low_h": 6, "expected_h": 10, "high_h": 18},
+        "run_cost": null,
+        "license_cost": {"annual_usd": 3600, "basis": "Team tier, per-seat", "sources": [{"url": "https://example.com/esign-pricing", "retrieved_at": "2026-06-29", "vendor_or_publisher": "Example E-Sign", "note": "Public pricing page."}]},
+        "maintenance": {"monthly_h": 1, "rationale": "Vendor manages the product; integration glue only."},
+        "first_year_total_usd": {"low": 4200, "expected": 5400, "high": 7200, "basis": "License plus integration effort."},
+        "annual_steady_state_usd": {"low": 3600, "expected": 4200, "high": 5400, "basis": "License plus light upkeep."},
+        "assumptions": ["Per-seat count stays within the team tier."],
+        "risks": ["Per-seat costs grow if usage spreads beyond the team."]
+      }
+    ],
+    "recommendation": {
+      "recommended_direction": "opt_002",
+      "rationale": "Buying reaches value faster with lower first-year effort; the build only wins if signature volume is high enough that per-seat license exceeds maintenance.",
+      "key_tradeoffs": ["Buy has lower effort but an ongoing per-seat license.", "Build avoids license but carries compliance risk and higher maintenance."],
+      "what_would_change_it": "A pilot showing seat count will exceed the team tier would shift the choice toward build."
+    }
+  }

@@ -15,6 +15,7 @@ on:
       - "agents/stack-check_v1_0.md"
       - "agents/triage-recommender_v1_0.md"
       - "agents/cost-estimation-rom_v1_1.md"
+      - "agents/cost-estimation-deepdive_v1_0.md"
       - "evals/**"
       - ".github/workflows/agent-evals.yml"
   pull_request:
@@ -25,6 +26,7 @@ on:
       - "agents/stack-check_v1_0.md"
       - "agents/triage-recommender_v1_0.md"
       - "agents/cost-estimation-rom_v1_1.md"
+      - "agents/cost-estimation-deepdive_v1_0.md"
       - "evals/**"
       - ".github/workflows/agent-evals.yml"
 
