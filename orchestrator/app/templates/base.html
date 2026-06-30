@@ -40,8 +40,10 @@
     .topbar .wrap { display: flex; align-items: center; gap: .7rem; }
     .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--posit-orange); display: inline-block; }
     .topbar .name { font-weight: 700; letter-spacing: .2px; }
-    .topbar .sub { color: #cfe0ee; font-weight: 400; font-size: .85rem; margin-left: auto; }
+    .topbar .sub { color: #cfe0ee; font-weight: 400; font-size: .85rem; }
+    .topbar .right { margin-left: auto; display: flex; gap: 1rem; align-items: center; font-size: .85rem; color: #eaf1f8; }
     .topbar a { color: #fff; }
+    .role-tag { background: rgba(255,255,255,.18); padding: .1rem .5rem; border-radius: 999px; font-size: .75rem; }
     .wrap { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
     main { padding: 2rem 0 3rem; }
     h1 { font-weight: 300; font-size: 1.9rem; margin: .2rem 0 .4rem; letter-spacing: -.2px; }
@@ -63,11 +65,11 @@
     form.inline { display: inline; margin: 0; }
     .actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1rem; }
     label { display: block; margin: .8rem 0 .3rem; font-weight: 600; font-size: .9rem; }
-    textarea, input[type=text], select {
+    textarea, input[type=text], input[type=password], select {
       width: 100%; padding: .55rem .65rem; font: inherit; color: var(--ink);
       border: 1px solid #cdd2d8; border-radius: 8px; background: #fff;
     }
-    textarea:focus, input:focus, select:focus { outline: 2px solid var(--blue-tint); border-color: var(--posit-blue); }
+    textarea:focus, input[type=text]:focus, input[type=password]:focus, select:focus { outline: 2px solid var(--blue-tint); border-color: var(--posit-blue); }
     button {
       font: inherit; font-weight: 600; padding: .55rem 1.1rem; border-radius: 8px;
       border: 1px solid var(--posit-blue); background: var(--posit-blue); color: #fff; cursor: pointer;
@@ -94,7 +96,18 @@
     <div class="wrap">
       <span class="brand-dot"></span>
       <span class="name">Tool-Request Workflow</span>
-      <span class="sub">{% block topbar_sub %}Director console{% endblock %}</span>
+      <span class="sub">{% block topbar_sub %}AI Enabler console{% endblock %}</span>
+      {% if user %}
+      <span class="right">
+        {% if user.role == 'ai_enabler' %}
+          <a href="/requests">Requests</a>
+        {% else %}
+          <a href="/intake">New request</a><a href="/my-requests">My requests</a>
+        {% endif %}
+        <span>{{ user.display_name }} <span class="role-tag">{{ 'AI Enabler' if user.role == 'ai_enabler' else 'Requestor' }}</span></span>
+        <a href="/logout">Log out</a>
+      </span>
+      {% endif %}
     </div>
   </div>
   <main>

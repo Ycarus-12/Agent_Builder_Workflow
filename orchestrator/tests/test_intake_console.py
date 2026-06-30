@@ -46,7 +46,9 @@ def client():
     gw.script("triage-recommender", [_triage_build_light()])
     gw.script("cost-estimation-rom", [_ro("rom/R2_build_ai.yaml")])
     app.dependency_overrides[get_services] = lambda: svc
-    yield TestClient(app)
+    c = TestClient(app)
+    c.post("/login", data={"username": "requestor", "password": "requestor"})  # Requestor session
+    yield c
     app.dependency_overrides.clear()
 
 
@@ -75,8 +77,7 @@ def test_conversation_to_signoff_creates_a_request(client):
     done = client.get(f"/intake/{request_id}").text
     assert "submitted" in done.lower()
 
-    # the request now appears in the Director console, awaiting Gate 1a
-    listing = client.get("/requests").text
+    # the requestor can track it in "my requests", awaiting Gate 1a
+    listing = client.get("/my-requests").text
     assert request_id in listing
     assert "awaiting gate" in listing
-    assert "Gate 1a" in client.get(f"/requests/{request_id}").text

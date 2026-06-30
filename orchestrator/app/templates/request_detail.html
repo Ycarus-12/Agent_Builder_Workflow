@@ -65,7 +65,7 @@
   </form>
 
 {% elif step.kind == 'awaiting_security_adjudication' %}
-  <h2>Security — Director adjudication</h2>
+  <h2>Security — AI Enabler adjudication</h2>
   {% if step.payload.disagreement %}<p><strong>The two security agents disagree.</strong></p>{% endif %}
   <pre>{{ step.payload.summary }}</pre>
   <div class="actions">

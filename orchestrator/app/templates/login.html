@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Tool-Request Workflow{% endblock %}
+{% block topbar_sub %}Sign in{% endblock %}
+{% block crumb %}{% endblock %}
+{% block content %}
+<h1>Sign in</h1>
+<p class="meta">Local access. Use your AI Enabler or Requestor account.</p>
+<div class="card" style="max-width: 420px;">
+  {% if error %}<p style="color: var(--posit-burgundy); font-weight: 600;">Incorrect username or password.</p>{% endif %}
+  <form method="post" action="/login">
+    <label>Username</label>
+    <input type="text" name="username" autofocus autocomplete="username">
+    <label>Password</label>
+    <input type="password" name="password" autocomplete="current-password">
+    <div class="actions"><button type="submit">Sign in</button></div>
+  </form>
+</div>
+{% endblock %}

@@ -57,7 +57,9 @@ def _seed_request_at_gate_1a():
 def client():
     svc = _seed_request_at_gate_1a()
     app.dependency_overrides[get_services] = lambda: svc
-    yield TestClient(app)
+    c = TestClient(app)
+    c.post("/login", data={"username": "enabler", "password": "enabler"})  # AI Enabler session
+    yield c
     app.dependency_overrides.clear()
 
 

@@ -21,6 +21,11 @@ class RequestSummary:
     stage: str
     request_title: str
     status: str  # awaiting_gate | awaiting_build_input | security_review | running | done
+    owner: str | None = None
+
+
+def owner_key(request_id: str) -> str:
+    return f"{request_id}:owner"
 
 
 def _status_for(pipeline: dict) -> str:
@@ -47,16 +52,24 @@ class RequestStore:
     def load_snapshot(self, request_id: str) -> dict | None:
         return self.datastore.get_record(f"{request_id}:snapshot")
 
-    def summaries(self) -> list[RequestSummary]:
+    def owner_of(self, request_id: str) -> str | None:
+        rec = self.datastore.get_record(owner_key(request_id))
+        return rec.get("owner") if rec else None
+
+    def summaries(self, *, owner: str | None = None) -> list[RequestSummary]:
+        """All in-flight requests, or only those owned by `owner` (the requestor)."""
         out: list[RequestSummary] = []
         for rid in self.list_ids():
             snap = self.load_snapshot(rid)
             if not snap:
                 continue
+            rid_owner = self.owner_of(rid)
+            if owner is not None and rid_owner != owner:
+                continue
             pipeline = snap.get("pipeline", {})
             title = (snap.get("state", {}).get("intake_record") or {}).get("request_title", rid)
             out.append(RequestSummary(
                 request_id=rid, stage=pipeline.get("stage", "unknown"),
-                request_title=title, status=_status_for(pipeline),
+                request_title=title, status=_status_for(pipeline), owner=rid_owner,
             ))
         return out
