@@ -1,11 +1,11 @@
-"""Requestor intake page + "my requests" tracking.
+"""Guest intake — the public conversational capture front end.
 
-A stateless chat: each message rehydrates the ConversationSession from the
-datastore, runs one intake-conversation turn, and re-persists. On the sign-off
-marker it finalizes (extraction -> stored record) and kicks the request into
-analysis, after which it surfaces in the AI Enabler console. Any signed-in user
-may start a request; the request is tagged with its owner so the requestor can
-track their own via /my-requests.
+Requestors are guests: no login. They provide contact info, then describe the
+problem in a stateless chat (each message rehydrates the ConversationSession,
+runs one intake-conversation turn, and re-persists). On the sign-off marker it
+finalizes (extraction -> stored record) and kicks the request into analysis,
+after which it surfaces in the AI Enabler console with the contact info attached.
+The per-request URL (unguessable id) doubles as the guest's status/tracking page.
 """
 
 from __future__ import annotations
@@ -16,12 +16,11 @@ from datetime import date
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .auth import User, require_user
 from .composition import Services, make_intake_runner, pipeline_runner_after_intake
 from .console import get_services
 from .intake import ConversationSession
 from .ports.identity import RequestorIdentity
-from .request_store import RequestStore, owner_key
+from .request_store import RequestStore, contact_key
 from .state_machine import Pipeline
 from .templating import templates
 
@@ -32,51 +31,49 @@ def _session_key(request_id: str) -> str:
     return f"{request_id}:intake_session"
 
 
-@router.get("/my-requests", response_class=HTMLResponse)
-def my_requests(
-    request: Request, user: User = Depends(require_user), services: Services = Depends(get_services)
-) -> HTMLResponse:
-    summaries = RequestStore(services.datastore).summaries(owner=user.username)
-    return templates.TemplateResponse(request, "my_requests.html", {"summaries": summaries, "user": user})
-
-
 @router.get("/intake", response_class=HTMLResponse)
-def intake_start(request: Request, user: User = Depends(require_user)) -> HTMLResponse:
-    return templates.TemplateResponse(request, "intake_start.html", {"user": user})
+def intake_start(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(request, "intake_start.html", {"user": None})
 
 
 @router.post("/intake/start")
 def intake_create(
-    request: Request, team: str = Form(""),
-    user: User = Depends(require_user), services: Services = Depends(get_services),
+    name: str = Form(""), email: str = Form(""), team: str = Form(""),
+    services: Services = Depends(get_services),
 ) -> RedirectResponse:
     request_id = "req-" + uuid.uuid4().hex[:8]
     session = ConversationSession(
         session_id=request_id,
-        identity=RequestorIdentity(requestor=user.display_name, team=team or "Unknown"),
+        identity=RequestorIdentity(requestor=name or "Guest", team=team or "Unknown"),
     )
     services.datastore.store_record(_session_key(request_id), session.to_dict())
-    services.datastore.store_record(owner_key(request_id), {"owner": user.username})
+    services.datastore.store_record(
+        contact_key(request_id),
+        {"name": name or "Guest", "email": email, "team": team or "Unknown"},
+    )
     return RedirectResponse(url=f"/intake/{request_id}", status_code=303)
 
 
 @router.get("/intake/{request_id}", response_class=HTMLResponse)
-def intake_view(
-    request_id: str, request: Request,
-    user: User = Depends(require_user), services: Services = Depends(get_services),
-) -> HTMLResponse:
-    finalized = services.datastore.get_record(f"{request_id}:snapshot") is not None
+def intake_view(request_id: str, request: Request, services: Services = Depends(get_services)) -> HTMLResponse:
+    snapshot = services.datastore.get_record(f"{request_id}:snapshot")
     data = services.datastore.get_record(_session_key(request_id)) or {"turns": []}
+    status = None
+    if snapshot is not None:
+        from .request_store import _status_for
+
+        status = {"stage": snapshot.get("pipeline", {}).get("stage"),
+                  "status": _status_for(snapshot.get("pipeline", {}))}
     return templates.TemplateResponse(
         request, "intake_chat.html",
-        {"request_id": request_id, "turns": data.get("turns", []), "finalized": finalized, "user": user},
+        {"request_id": request_id, "turns": data.get("turns", []),
+         "finalized": snapshot is not None, "status": status, "user": None},
     )
 
 
 @router.post("/intake/{request_id}/message")
 def intake_message(
-    request_id: str, message: str = Form(...),
-    user: User = Depends(require_user), services: Services = Depends(get_services),
+    request_id: str, message: str = Form(...), services: Services = Depends(get_services)
 ) -> RedirectResponse:
     data = services.datastore.get_record(_session_key(request_id))
     if data is None:

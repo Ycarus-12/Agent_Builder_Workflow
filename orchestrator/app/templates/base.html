@@ -97,17 +97,15 @@
       <span class="brand-dot"></span>
       <span class="name">Tool-Request Workflow</span>
       <span class="sub">{% block topbar_sub %}AI Enabler console{% endblock %}</span>
-      {% if user %}
       <span class="right">
-        {% if user.role == 'ai_enabler' %}
+        {% if user %}
           <a href="/requests">Requests</a>
+          <span>{{ user.display_name }} <span class="role-tag">AI Enabler</span></span>
+          <a href="/logout">Log out</a>
         {% else %}
-          <a href="/intake">New request</a><a href="/my-requests">My requests</a>
+          <a href="/login">Staff sign in</a>
         {% endif %}
-        <span>{{ user.display_name }} <span class="role-tag">{{ 'AI Enabler' if user.role == 'ai_enabler' else 'Requestor' }}</span></span>
-        <a href="/logout">Log out</a>
       </span>
-      {% endif %}
     </div>
   </div>
   <main>

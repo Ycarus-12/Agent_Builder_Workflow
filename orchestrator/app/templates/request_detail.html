@@ -3,6 +3,9 @@
 {% block content %}
 <h1>{{ title }}</h1>
 <p><span class="pill {{ step.kind }}">{{ step.kind.replace('_', ' ') }}</span> <span class="meta">&middot; stage: {{ step.stage }} &middot; {{ request_id }}</span></p>
+{% if contact %}
+<p class="meta">Requestor: <strong>{{ contact.name }}</strong>{% if contact.team %} · {{ contact.team }}{% endif %}{% if contact.email %} · <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% endif %}</p>
+{% endif %}
 
 <div class="card">
 {% if step.kind == 'awaiting_gate' and step.stage == 'gate_1a' %}

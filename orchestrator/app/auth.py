@@ -1,10 +1,9 @@
-"""Local username/password auth + roles (initial, pre-SSO).
+"""Local username/password auth for the AI Enabler (initial, pre-SSO).
 
-For local/dev use until the move to production team systems (SSO). Two roles:
-
-  - ai_enabler — the decision authority (gates 1a/1b/2, security adjudication,
-    R&D sign-off). Formerly "the Director".
-  - requestor — an end user: starts requests and tracks their own.
+For local/dev use until the move to production team systems (SSO). Only the
+AI Enabler — the decision authority (gates 1a/1b/2, security adjudication, R&D
+sign-off) — signs in. Requestors are guests: they log requests without an account
+and leave contact info, so no requestor role exists here.
 
 Credentials come from the AUTH_USERS env var (no real secrets in code); a local
 dev default is used only when AUTH_USERS is unset. The session is a signed cookie
@@ -23,15 +22,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from .templating import templates
 
 AI_ENABLER = "ai_enabler"
-REQUESTOR = "requestor"
-ROLES = {AI_ENABLER, REQUESTOR}
-ROLE_LABELS = {AI_ENABLER: "AI Enabler", REQUESTOR: "Requestor"}
+ROLES = {AI_ENABLER}
 
-# Local dev only. Production MUST set AUTH_USERS; these are obvious placeholders.
-_DEV_DEFAULT_USERS = (
-    "enabler:enabler:ai_enabler:AI Enabler,"
-    "requestor:requestor:requestor:Requestor"
-)
+# Local dev only. Production MUST set AUTH_USERS; this is an obvious placeholder.
+_DEV_DEFAULT_USERS = "enabler:enabler:ai_enabler:AI Enabler"
 
 
 @dataclass(frozen=True)
@@ -74,16 +68,10 @@ def current_user(request: Request) -> User | None:
     return User(**data) if data else None
 
 
-def require_user(request: Request) -> User:
+def require_enabler(request: Request) -> User:
     user = current_user(request)
     if user is None:
-        # Redirect unauthenticated browsers to the login page.
         raise HTTPException(status_code=status.HTTP_303_SEE_OTHER, headers={"Location": "/login"})
-    return user
-
-
-def require_enabler(request: Request) -> User:
-    user = require_user(request)
     if not user.is_enabler:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="AI Enabler role required")
     return user
@@ -105,8 +93,7 @@ def login_submit(
     if user is None:
         return RedirectResponse(url="/login?error=1", status_code=303)
     request.session["user"] = asdict(user)
-    dest = "/requests" if user.is_enabler else "/my-requests"
-    return RedirectResponse(url=dest, status_code=303)
+    return RedirectResponse(url="/requests", status_code=303)
 
 
 @router.get("/logout")

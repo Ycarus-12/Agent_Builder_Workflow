@@ -19,8 +19,9 @@
 {% if finalized %}
   <div class="card">
     <h2>Request submitted &#10003;</h2>
-    <p>Thanks — your request has been captured and signed off. It's now in analysis and will appear for the AI Enabler's decision.</p>
-    <div class="actions"><a href="/requests/{{ request_id }}"><button type="button">View status</button></a></div>
+    <p>Thanks — your request has been captured and signed off. It's now in analysis and will be reviewed by the AI Enabler. We'll follow up using the contact info you provided.</p>
+    {% if status %}<p>Current status: <span class="pill {{ status.status }}">{{ status.status.replace('_', ' ') }}</span> <span class="meta">({{ status.stage }})</span></p>{% endif %}
+    <p class="meta">Bookmark this page to check back on your request — its link is private to you.</p>
   </div>
 {% else %}
   <div class="card">

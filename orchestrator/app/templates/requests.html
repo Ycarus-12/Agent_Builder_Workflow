@@ -9,11 +9,12 @@
   <p class="muted">No requests yet. <a href="/intake">Start one.</a></p>
 {% else %}
 <table>
-  <thead><tr><th>Request</th><th>Stage</th><th>Status</th></tr></thead>
+  <thead><tr><th>Request</th><th>Requestor</th><th>Stage</th><th>Status</th></tr></thead>
   <tbody>
   {% for s in summaries %}
     <tr>
       <td><a href="/requests/{{ s.request_id }}">{{ s.request_title }}</a><div class="meta">{{ s.request_id }}</div></td>
+      <td>{% if s.contact %}{{ s.contact.name }}<div class="meta">{{ s.contact.email }}</div>{% else %}<span class="meta">—</span>{% endif %}</td>
       <td class="meta">{{ s.stage }}</td>
       <td><span class="pill {{ s.status }}">{{ s.status.replace('_', ' ') }}</span></td>
     </tr>

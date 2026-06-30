@@ -54,9 +54,10 @@ def request_detail(
     runner = rehydrate_runner(services, request_id)
     step = runner.current_step()
     title = (runner.state.intake_record or {}).get("request_title", request_id)
+    contact = RequestStore(services.datastore).contact_of(request_id)
     return templates.TemplateResponse(
         request, "request_detail.html",
-        {"request_id": request_id, "step": step, "title": title, "user": user},
+        {"request_id": request_id, "step": step, "title": title, "contact": contact, "user": user},
     )
 
 
