@@ -1,0 +1,26 @@
+case_id: C1
+agent: registry-maintenance
+version: 1.0.0
+description: github confirmed match; verification stamp; auto_merge
+expect_result: pass
+run_context:
+  run_date: "2026-06-30"
+  trigger: "scheduled"
+drift_report:
+  - record_id: "expense-router"
+affected_records: ["expense-router"]
+oracle:
+  changes:
+    - change_kind: "stamp"
+      class: "auto_merge"
+assertions: {}
+recorded_output: |
+  {
+    "run_date": "2026-06-30",
+    "trigger": "scheduled",
+    "changes": [
+      {"record_id": "expense-router", "proposed_record_id": null, "field": "last_verified", "current": "2026-05-01", "proposed": "2026-06-30", "class": "auto_merge", "change_kind": "stamp", "evidence": {"source": "github", "locator": "Ycarus-12/expense-router@a1b2c3d"}, "rationale": "Source repo unchanged since last verification; proposing a date stamp only."}
+    ],
+    "stale_records": [],
+    "run_summary": "Proposes one verification stamp; no judgment changes this run."
+  }

@@ -1,0 +1,22 @@
+case_id: P_neg_tier
+agent: portfolio-pattern
+version: 1.0.0
+description: NEGATIVE — count 8 mislabeled desperate_need
+expect_result: fail
+replay_only: true
+clusters:
+  - cluster_id: "c1"
+    request_count: 8
+    members: ["r1"]
+    candidate_coverage: []
+pseudo_agent_usage: []
+assertions: {}
+recorded_output: |
+  {
+    "digest_date": "2026-06-30",
+    "themes": [
+      {"cluster_id": "c1", "theme_label": "x", "request_count": 8, "tier": "desperate_need", "signal_type": "build", "registry_coverage": null, "recommendation": "x", "rationale": "x", "risks": [], "uncertainty": "x", "member_request_ids": ["r1"]}
+    ],
+    "pseudo_agent_graduations": [],
+    "noise_floor_count": 0
+  }

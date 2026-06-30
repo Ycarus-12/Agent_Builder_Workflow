@@ -20,6 +20,8 @@ on:
       - "agents/functional-qa_v1_0.md"
       - "agents/security-vulnerabilities_v1_0.md"
       - "agents/security-governance_v1_0.md"
+      - "agents/portfolio-pattern_v1_0.md"
+      - "agents/registry-maintenance_v1_0.md"
       - "evals/**"
       - ".github/workflows/agent-evals.yml"
   pull_request:
@@ -35,6 +37,8 @@ on:
       - "agents/functional-qa_v1_0.md"
       - "agents/security-vulnerabilities_v1_0.md"
       - "agents/security-governance_v1_0.md"
+      - "agents/portfolio-pattern_v1_0.md"
+      - "agents/registry-maintenance_v1_0.md"
       - "evals/**"
       - ".github/workflows/agent-evals.yml"
 

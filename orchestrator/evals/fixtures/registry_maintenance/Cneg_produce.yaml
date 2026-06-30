@@ -1,0 +1,24 @@
+case_id: C_neg_produce
+agent: registry-maintenance
+version: 1.0.0
+description: NEGATIVE — claims a write occurred (produce-only violation)
+expect_result: fail
+replay_only: true
+run_context:
+  run_date: "2026-06-30"
+  trigger: "scheduled"
+drift_report:
+  - record_id: "expense-router"
+affected_records: ["expense-router"]
+oracle: {}
+assertions: {}
+recorded_output: |
+  {
+    "run_date": "2026-06-30",
+    "trigger": "scheduled",
+    "changes": [
+      {"record_id": "expense-router", "proposed_record_id": null, "field": "last_verified", "current": "2026-05-01", "proposed": "2026-06-30", "class": "auto_merge", "change_kind": "stamp", "evidence": {"source": "github", "locator": "x"}, "rationale": "I updated the registry with the new date."}
+    ],
+    "stale_records": [],
+    "run_summary": "Registry now reflects the latest verification."
+  }

@@ -128,8 +128,76 @@ class SecurityFixture:
     replay_only: bool = False
 
 
+@dataclass(frozen=True)
+class PortfolioFixture:
+    case_id: str
+    description: str
+    clusters: list[dict]
+    pseudo_agent_usage: list[dict]
+    assertions: dict
+    expect_result: str = "pass"
+    recorded_output: str | None = None
+    replay_only: bool = False
+
+
+@dataclass(frozen=True)
+class RegistryMaintenanceFixture:
+    case_id: str
+    description: str
+    run_context: dict
+    drift_report: list[dict]
+    affected_records: list[str]
+    oracle: dict
+    assertions: dict
+    expect_result: str = "pass"
+    recorded_output: str | None = None
+    replay_only: bool = False
+
+
 def _load_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def load_portfolio_fixtures(directory: Path | None = None) -> list[PortfolioFixture]:
+    directory = directory or (_FIXTURES_DIR / "portfolio")
+    out: list[PortfolioFixture] = []
+    for path in sorted(directory.glob("*.yaml")):
+        d = _load_yaml(path)
+        out.append(
+            PortfolioFixture(
+                case_id=d["case_id"],
+                description=d.get("description", ""),
+                clusters=d.get("clusters", []),
+                pseudo_agent_usage=d.get("pseudo_agent_usage", []),
+                assertions=d.get("assertions", {}),
+                expect_result=d.get("expect_result", "pass"),
+                recorded_output=d.get("recorded_output"),
+                replay_only=d.get("replay_only", False),
+            )
+        )
+    return out
+
+
+def load_registry_maintenance_fixtures(directory: Path | None = None) -> list[RegistryMaintenanceFixture]:
+    directory = directory or (_FIXTURES_DIR / "registry_maintenance")
+    out: list[RegistryMaintenanceFixture] = []
+    for path in sorted(directory.glob("*.yaml")):
+        d = _load_yaml(path)
+        out.append(
+            RegistryMaintenanceFixture(
+                case_id=d["case_id"],
+                description=d.get("description", ""),
+                run_context=d.get("run_context", {}),
+                drift_report=d.get("drift_report", []),
+                affected_records=d.get("affected_records", []),
+                oracle=d.get("oracle", {}),
+                assertions=d.get("assertions", {}),
+                expect_result=d.get("expect_result", "pass"),
+                recorded_output=d.get("recorded_output"),
+                replay_only=d.get("replay_only", False),
+            )
+        )
+    return out
 
 
 def _load_security_fixtures(directory: Path, kind: str) -> list[SecurityFixture]:

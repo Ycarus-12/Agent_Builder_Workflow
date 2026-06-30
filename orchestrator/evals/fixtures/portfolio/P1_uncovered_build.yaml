@@ -1,0 +1,21 @@
+case_id: P1
+agent: portfolio-pattern
+version: 1.0.0
+description: Uncovered theme, count 8 -> likely_candidate, build, coverage null
+expect_result: pass
+clusters:
+  - cluster_id: "c1"
+    request_count: 8
+    members: ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8"]
+    candidate_coverage: []
+pseudo_agent_usage: []
+assertions: {}
+recorded_output: |
+  {
+    "digest_date": "2026-06-30",
+    "themes": [
+      {"cluster_id": "c1", "theme_label": "Recurring data-export automation", "request_count": 8, "tier": "likely_candidate", "signal_type": "build", "registry_coverage": null, "recommendation": "Consider a build to cover this recurring need.", "rationale": "Eight requests with no owned tool that resolves them.", "risks": ["Scope may vary across requesters."], "uncertainty": "Exact shared spec across the eight is not yet confirmed.", "member_request_ids": ["r1", "r2", "r3"]}
+    ],
+    "pseudo_agent_graduations": [],
+    "noise_floor_count": 0
+  }

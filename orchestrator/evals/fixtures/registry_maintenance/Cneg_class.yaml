@@ -1,0 +1,24 @@
+case_id: C_neg_class
+agent: registry-maintenance
+version: 1.0.0
+description: NEGATIVE — a judgment change (capability) classified auto_merge
+expect_result: fail
+replay_only: true
+run_context:
+  run_date: "2026-06-30"
+  trigger: "scheduled"
+drift_report:
+  - record_id: "crm-002"
+affected_records: ["crm-002"]
+oracle: {}
+assertions: {}
+recorded_output: |
+  {
+    "run_date": "2026-06-30",
+    "trigger": "scheduled",
+    "changes": [
+      {"record_id": "crm-002", "proposed_record_id": null, "field": "capabilities", "current": null, "proposed": {"statement": "x"}, "class": "auto_merge", "change_kind": "capability", "evidence": {"source": "github", "locator": "x"}, "rationale": "Should be needs_review."}
+    ],
+    "stale_records": [],
+    "run_summary": "x"
+  }

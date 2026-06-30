@@ -1,0 +1,24 @@
+case_id: C_neg_stamp_date
+agent: registry-maintenance
+version: 1.0.0
+description: NEGATIVE — stamp proposes a date other than run_date
+expect_result: fail
+replay_only: true
+run_context:
+  run_date: "2026-06-30"
+  trigger: "scheduled"
+drift_report:
+  - record_id: "expense-router"
+affected_records: ["expense-router"]
+oracle: {}
+assertions: {}
+recorded_output: |
+  {
+    "run_date": "2026-06-30",
+    "trigger": "scheduled",
+    "changes": [
+      {"record_id": "expense-router", "proposed_record_id": null, "field": "last_verified", "current": "2026-05-01", "proposed": "2026-01-01", "class": "auto_merge", "change_kind": "stamp", "evidence": {"source": "github", "locator": "x"}, "rationale": "Stamp with a wrong date."}
+    ],
+    "stale_records": [],
+    "run_summary": "Proposes a stamp."
+  }

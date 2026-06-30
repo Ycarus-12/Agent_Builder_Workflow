@@ -1,0 +1,19 @@
+case_id: P5
+agent: portfolio-pattern
+version: 1.0.0
+description: Pseudo-agent with sustained multi-person usage -> graduate
+expect_result: pass
+clusters: []
+pseudo_agent_usage:
+  - record_id: "pa-1"
+    record_name: "Draft Responder (Claude Project)"
+assertions: {}
+recorded_output: |
+  {
+    "digest_date": "2026-06-30",
+    "themes": [],
+    "pseudo_agent_graduations": [
+      {"record_id": "pa-1", "record_name": "Draft Responder (Claude Project)", "recommendation": "graduate", "rationale": "Sustained use across multiple people over the window.", "usage_evidence": "12 distinct users across 30 days per the supplied usage."}
+    ],
+    "noise_floor_count": 0
+  }

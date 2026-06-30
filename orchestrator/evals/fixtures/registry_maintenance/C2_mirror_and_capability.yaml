@@ -1,0 +1,29 @@
+case_id: C2
+agent: registry-maintenance
+version: 1.0.0
+description: sso name mirror (auto_merge) + a capability proposal (needs_review)
+expect_result: pass
+run_context:
+  run_date: "2026-06-30"
+  trigger: "on_demand"
+drift_report:
+  - record_id: "crm-002"
+affected_records: ["crm-002"]
+oracle:
+  changes:
+    - change_kind: "metadata_mirror"
+      class: "auto_merge"
+    - change_kind: "capability"
+      class: "needs_review"
+assertions: {}
+recorded_output: |
+  {
+    "run_date": "2026-06-30",
+    "trigger": "on_demand",
+    "changes": [
+      {"record_id": "crm-002", "proposed_record_id": null, "field": "name", "current": "CRM", "proposed": "CRM Platform", "class": "auto_merge", "change_kind": "metadata_mirror", "evidence": {"source": "sso", "locator": "directory:crm-002"}, "rationale": "Display name changed upstream; mirroring metadata only."},
+      {"record_id": "crm-002", "proposed_record_id": null, "field": "capabilities", "current": null, "proposed": {"statement": "Round-robin lead assignment"}, "class": "needs_review", "change_kind": "capability", "evidence": {"source": "github", "locator": "Ycarus-12/crm-config@ff00ff"}, "rationale": "A new capability appears in the config; proposing it for Director review."}
+    ],
+    "stale_records": [],
+    "run_summary": "Proposes one metadata mirror and one capability for review."
+  }
