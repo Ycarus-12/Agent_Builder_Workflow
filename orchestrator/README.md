@@ -60,6 +60,15 @@ uvicorn app.api:app --reload     # now agents run through OpenRouter
 error). See `.env.example` for the full variable list (models, Airtable, Resend,
 auth, notification links).
 
+### Secrets on Posit Connect Cloud
+
+No API key lives in the code or the repo — every secret is read via `os.environ`
+(`config.py`). Locally that's a gitignored `.env`. **On Connect, don't deploy a
+`.env`:** set the same variable names as encrypted **Environment Variables /
+Secrets** on the content's **Advanced** settings tab. Connect stores them
+encrypted and decrypts them only when the process starts, so nothing sensitive is
+ever in the deployed bundle.
+
 ## Scope (this phase)
 
 In: the deterministic core + seams-as-fakes + unit tests + a fake end-to-end
