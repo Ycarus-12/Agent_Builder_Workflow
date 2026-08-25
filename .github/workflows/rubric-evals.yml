@@ -4,6 +4,10 @@ name: rubric-evals
 # model (median of 3 runs). Out of scope for every-commit CI — runs weekly and on
 # demand, and needs the OPENROUTER_API_KEY secret. The judge smokes skip cleanly
 # when the key is absent, so this is safe before you add it.
+#
+# Scheduled workflows are auto-disabled after 60 days with no repository activity.
+# Any commit resets that clock; touching this file is the cheapest way to do it.
+# Last keep-alive touch: 2026-08-25.
 
 on:
   workflow_dispatch: {}
